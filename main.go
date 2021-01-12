@@ -93,6 +93,9 @@ func main() {
 
 	// get kost handler
 	getRequest.HandleFunc("/", kostHandler.GetKost)
+	getRequest.HandleFunc("/all", kostHandler.GetKostList)
+	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
+	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
 
 	// get global middleware
 	getRequest.Use(kostHandler.MiddlewareValidateAuth)

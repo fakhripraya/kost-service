@@ -9,12 +9,15 @@ type DBKost struct {
 	TypeID        uint      `gorm:"not null" json:"type_id"`
 	KostCode      string    `gorm:"not null" json:"kost_code"`
 	KostName      string    `gorm:"not null" json:"kost_name"`
+	Country       string    `gorm:"not null" json:"country"`
+	City          string    `gorm:"not null" json:"city"`
 	Address       string    `gorm:"not null" json:"address"`
 	UpRate        uint64    `json:"up_rate"`
 	UpRateExpired time.Time `json:"up_rate_expired"`
 	Rate          uint64    `json:"rate"`
 	IsVerified    bool      `gorm:"not null;default:false" json:"is_verified"`
 	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
+	StatusAktif   uint64    `gorm:"not null;default:0" json:"status_aktif"`
 	Created       time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy     string    `json:"created_by"`
 	Modified      time.Time `gorm:"type:datetime" json:"modified"`

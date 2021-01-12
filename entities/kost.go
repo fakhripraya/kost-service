@@ -9,6 +9,8 @@ type Kost struct {
 	TypeID        uint       `json:"type_id"`
 	KostCode      string     `json:"kost_code"`
 	KostName      string     `json:"kost_name"`
+	Country       string     `json:"country"`
+	City          string     `json:"city"`
 	Address       string     `json:"address"`
 	UpRate        uint64     `json:"up_rate"`
 	UpRateExpired time.Time  `json:"up_rate_expired"`
@@ -16,6 +18,7 @@ type Kost struct {
 	Room          []KostRoom `json:"rooms"`
 	IsVerified    bool       `json:"is_verified"`
 	IsActive      bool       `json:"is_active"`
+	StatusAktif   uint64     `json:"status_aktif"`
 	Created       time.Time  `json:"created"`
 	CreatedBy     string     `json:"created_by"`
 	Modified      time.Time  `json:"modified"`
@@ -62,6 +65,17 @@ type MasterFacilities struct {
 	ID         uint      `json:"id"`
 	FacCode    string    `json:"fac_code"`
 	FacName    string    `json:"fac_name"`
+	IsActive   bool      `json:"is_active"`
+	Created    time.Time `json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
+}
+
+// MasterStatusKost is an entity to communicate with MasterStatusKost table in database
+type MasterStatusKost struct {
+	ID         uint      `json:"id"`
+	StatusDesc string    `json:"status_desc"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`

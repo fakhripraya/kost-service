@@ -1,7 +1,11 @@
 package data
 
 import (
+	"crypto/rand"
+	"io"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fakhripraya/kost-service/config"
@@ -56,6 +60,34 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 	}
 
 	return &currentUser, nil
+
+}
+
+// GenerateCode will generate the new given type code
+func (kost *Kost) GenerateCode(kostType, country, city string) (string, error) {
+
+	var max int = 8
+	var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
+
+	b := make([]byte, max)
+	n, err := io.ReadAtLeast(rand.Reader, b, max)
+	if n != max {
+		return "", err
+	}
+	for i := 0; i < len(b); i++ {
+		b[i] = table[int(b[i])%len(table)]
+	}
+
+	// returns the crypted random 8 number
+	var crypted string = string(b)
+
+	var finalCode string = kostType +
+		"/" + country +
+		"-" + city +
+		"/" + strconv.Itoa(time.Now().UTC().Year()) + "-" + time.Now().UTC().Month().String()[0:1] +
+		"/" + crypted
+
+	return finalCode, nil
 
 }
 

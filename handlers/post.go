@@ -17,51 +17,42 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 	// get the kost via context
 	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
 
-	// Get a session (existing/new)
-	session, err := kostHandler.store.Get(r, "session-name")
+	// get the current user login
+	var currentUser *database.MasterUser
+	currentUser, err := kostHandler.kost.GetCurrentUser(rw, r, kostHandler.store)
 	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	// check the logged in user from the session
-	// if user available, get the user info from the session
-	if session.Values["userLoggedin"] == nil {
-		rw.WriteHeader(http.StatusUnauthorized)
-
-		return
-	}
-
-	// work with database
-	// look for the current user logged in in the db
-	var currentUser database.MasterUser
-	if err := config.DB.Where("username = ?", session.Values["userLoggedin"].(string)).First(&currentUser).Error; err != nil {
-		rw.WriteHeader(http.StatusUnauthorized)
 
 		return
 	}
 
 	// proceed to create the new user with transaction scope
 	err = config.DB.Transaction(func(tx *gorm.DB) error {
+
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		var newKost database.DBKost
 		var dbErr error
 
 		newKost.OwnerID = currentUser.ID
 		newKost.TypeID = kostReq.TypeID
-		newKost.KostCode = kostReq.KostCode
+		newKost.KostCode, dbErr = kostHandler.kost.GenerateCode("k", kostReq.Country[0:1], kostReq.City[0:1])
+		if dbErr != nil {
+			return dbErr
+		}
+
 		newKost.KostName = kostReq.KostName
+		newKost.Country = kostReq.Country
+		newKost.City = kostReq.City
 		newKost.Address = kostReq.Address
 		newKost.UpRate = 0
 		newKost.UpRateExpired = time.Now().Local()
 		newKost.IsVerified = false
-		newKost.IsActive = true
+		newKost.IsActive = false
+		newKost.StatusAktif = 0
 		newKost.Created = time.Now().Local()
-		newKost.CreatedBy = "SYSTEM"
+		newKost.CreatedBy = currentUser.Username
 		newKost.Modified = time.Now().Local()
-		newKost.ModifiedBy = "SYSTEM"
+		newKost.ModifiedBy = currentUser.Username
 
 		if dbErr = tx.Create(&newKost).Error; dbErr != nil {
 			return dbErr
@@ -69,6 +60,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		// return nil will commit the whole transaction
 		return nil
+
 	})
 
 	// if transaction error

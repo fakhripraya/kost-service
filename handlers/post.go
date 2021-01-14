@@ -58,6 +58,30 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 			return dbErr
 		}
 
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
+			var kostPicts = kostReq.KostPicts
+
+			// add the kost id to the slices
+			for i := range kostPicts {
+				(&kostPicts[i]).KostID = newKost.ID
+				(&kostPicts[i]).Created = time.Now().Local()
+				(&kostPicts[i]).CreatedBy = currentUser.Username
+				(&kostPicts[i]).Modified = time.Now().Local()
+				(&kostPicts[i]).ModifiedBy = currentUser.Username
+			}
+
+			// insert the new kost picts to database
+			if dbErr2 = tx2.Create(&kostPicts).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
 		// loop the room slices
 		for _, room := range kostReq.Rooms {
 
@@ -86,7 +110,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	data.ToJSON(&GenericError{Message: "Sukses menambah kost baru"}, rw)
 	rw.WriteHeader(http.StatusOK)
+	data.ToJSON(&GenericError{Message: "Sukses menambah kost baru"}, rw)
 	return
 }

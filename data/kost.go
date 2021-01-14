@@ -137,6 +137,8 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		}
 
 		newKostRoom.RoomAreaUOM = targetKostRoom.RoomAreaUOM
+		newKostRoom.AvailableRoom = targetKostRoom.AvailableRoom
+		newKostRoom.FloorLevel = targetKostRoom.FloorLevel
 		newKostRoom.IsActive = true
 		newKostRoom.Created = time.Now().Local()
 		newKostRoom.CreatedBy = currentUser.Username
@@ -157,6 +159,10 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			// add the room id to the slices
 			for i := range roomPicts {
 				(&roomPicts[i]).RoomID = newKostRoom.ID
+				(&roomPicts[i]).Created = time.Now().Local()
+				(&roomPicts[i]).CreatedBy = currentUser.Username
+				(&roomPicts[i]).Modified = time.Now().Local()
+				(&roomPicts[i]).ModifiedBy = currentUser.Username
 			}
 
 			// insert the new room picts to database

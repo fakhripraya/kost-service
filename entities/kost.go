@@ -21,6 +21,7 @@ type Kost struct {
 	Rate          uint64                      `json:"rate"`
 	Rooms         []KostRoom                  `json:"rooms"`
 	Facilities    []database.DBKostFacilities `json:"facilities"`
+	KostPicts     []database.DBKostPict       `json:"kost_picts"`
 	IsVerified    bool                        `json:"is_verified"`
 	IsActive      bool                        `json:"is_active"`
 	StatusAktif   uint64                      `json:"status_aktif"`
@@ -31,21 +32,36 @@ type Kost struct {
 	ModifiedBy    string                      `json:"modified_by"`
 }
 
+// KostPict is an entity to communicate with the kost pict client side
+type KostPict struct {
+	ID         uint      `json:"id"`
+	KostID     uint      `json:"kost_id"`
+	PictDesc   string    `json:"pict_desc"`
+	URL        string    `json:"url"`
+	IsActive   bool      `json:"is_active"`
+	Created    time.Time `json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
+}
+
 // KostRoom is an entity to communicate with the kost room client side
 type KostRoom struct {
-	ID           uint                      `json:"id"`
-	KostID       uint                      `json:"kost_id"`
-	RoomDesc     string                    `json:"room_desc"`
-	RoomPrice    uint64                    `json:"room_price"`
-	RoomPriceUOM uint                      `json:"room_price_uom"`
-	RoomArea     uint64                    `json:"room_area"`
-	RoomAreaUOM  uint                      `json:"room_area_uom"`
-	RoomPicts    []database.DBKostRoomPict `json:"room_picts"`
-	IsActive     bool                      `json:"is_active"`
-	Created      time.Time                 `json:"created"`
-	CreatedBy    string                    `json:"created_by"`
-	Modified     time.Time                 `json:"modified"`
-	ModifiedBy   string                    `json:"modified_by"`
+	ID            uint                      `json:"id"`
+	KostID        uint                      `json:"kost_id"`
+	RoomDesc      string                    `json:"room_desc"`
+	RoomPrice     uint64                    `json:"room_price"`
+	RoomPriceUOM  uint                      `json:"room_price_uom"`
+	RoomArea      uint64                    `json:"room_area"`
+	RoomAreaUOM   uint                      `json:"room_area_uom"`
+	AvailableRoom uint                      `json:"available_room"`
+	FloorLevel    uint                      `json:"floor_level"`
+	RoomPicts     []database.DBKostRoomPict `json:"room_picts"`
+	IsActive      bool                      `json:"is_active"`
+	Created       time.Time                 `json:"created"`
+	CreatedBy     string                    `json:"created_by"`
+	Modified      time.Time                 `json:"modified"`
+	ModifiedBy    string                    `json:"modified_by"`
 }
 
 // KostRoomPict is an entity to communicate with the kost room pict client side

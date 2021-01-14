@@ -6,7 +6,7 @@ import (
 	"github.com/fakhripraya/kost-service/database"
 )
 
-// Kost is an entity to communicate with Kost table in database
+// Kost is an entity to communicate with the kost client side
 type Kost struct {
 	ID            uint                        `json:"id"`
 	OwnerID       uint                        `json:"owner_id"`
@@ -31,7 +31,7 @@ type Kost struct {
 	ModifiedBy    string                      `json:"modified_by"`
 }
 
-// KostRoom is an entity to communicate with KostRoom table in database
+// KostRoom is an entity to communicate with the kost room client side
 type KostRoom struct {
 	ID           uint                      `json:"id"`
 	KostID       uint                      `json:"kost_id"`
@@ -48,7 +48,7 @@ type KostRoom struct {
 	ModifiedBy   string                    `json:"modified_by"`
 }
 
-// KostRoomPict is an entity to communicate with KostRoomPict table in database
+// KostRoomPict is an entity to communicate with the kost room pict client side
 type KostRoomPict struct {
 	ID         uint      `json:"id"`
 	RoomID     uint      `json:"room_id"`
@@ -61,7 +61,7 @@ type KostRoomPict struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// KostFacilities is an entity to communicate with KostFacilities table in database
+// KostFacilities is an entity to communicate with the kost facilities client side
 type KostFacilities struct {
 	FacID      uint      `json:"fac_id"`
 	KostID     uint      `json:"kost_id"`
@@ -71,7 +71,7 @@ type KostFacilities struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// MasterKostType is an entity to communicate with MasterKostType table in database
+// MasterKostType is an entity to communicate with the master kost type client side
 type MasterKostType struct {
 	ID         uint      `json:"id"`
 	TypeDesc   string    `json:"type_desc"`
@@ -82,7 +82,7 @@ type MasterKostType struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// MasterFacilities is an entity to communicate with MasterFacilities table in database
+// MasterFacilities is an entity to communicate with the master facilities client side
 type MasterFacilities struct {
 	ID         uint      `json:"id"`
 	FacName    string    `json:"fac_name"`
@@ -93,7 +93,7 @@ type MasterFacilities struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// MasterStatusKost is an entity to communicate with MasterStatusKost table in database
+// MasterStatusKost is an entity to communicate with the master status kost client side
 type MasterStatusKost struct {
 	ID         uint      `json:"id"`
 	StatusDesc string    `json:"status_desc"`
@@ -104,7 +104,7 @@ type MasterStatusKost struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// MasterUOM is an entity to communicate with MasterUOM table in database
+// MasterUOM is an entity to communicate with the master uom client side
 type MasterUOM struct {
 	ID         uint      `json:"id"`
 	UOMType    string    `json:"uom_type"`

@@ -68,6 +68,7 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 // GenerateCode will generate the new given type code
 func (kost *Kost) GenerateCode(kostType, country, city string) (string, error) {
 
+	// generate 8 random crypted number
 	var max int = 8
 	var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
 
@@ -104,7 +105,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
-		// do some database operations in the transaction (use 'tx' from this point, not 'db')
+		// set variables
 		var newKostRoom database.DBKostRoom
 		var targetPriceUOM database.MasterUOM
 		var targetAreaUOM database.MasterUOM
@@ -118,6 +119,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			return dbErr
 		}
 
+		// check the uom type, if not currency return error
 		if targetPriceUOM.UOMType != "currency" {
 			return fmt.Errorf("Invalid UOM Type")
 		}
@@ -129,6 +131,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			return dbErr
 		}
 
+		// check the uom type, if not length return error
 		if targetAreaUOM.UOMType != "length" {
 			return fmt.Errorf("Invalid UOM Type")
 		}
@@ -140,6 +143,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		newKostRoom.Modified = time.Now().Local()
 		newKostRoom.ModifiedBy = currentUser.Username
 
+		// insert the new room to the database
 		if dbErr = tx.Create(&newKostRoom).Error; dbErr != nil {
 			return dbErr
 		}
@@ -150,16 +154,17 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			var dbErr2 error
 			var roomPicts = targetKostRoom.RoomPicts
 
-			// add the room id
+			// add the room id to the slices
 			for i := range roomPicts {
 				(&roomPicts[i]).RoomID = newKostRoom.ID
 			}
 
-			// insert to database
+			// insert the new room picts to database
 			if dbErr2 = tx2.Create(&roomPicts).Error; dbErr2 != nil {
 				return dbErr2
 			}
 
+			// return nil will commit the whole nested transaction
 			return nil
 		})
 
@@ -188,10 +193,11 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
+		// set variables
 		var dbErr error
 		var facilities = targetFacilities
 
-		// add the CRUD record time
+		// add the CRUD record time to the slices
 		for i := range facilities {
 			(&facilities[i]).Created = time.Now().Local()
 			(&facilities[i]).CreatedBy = currentUser.Username
@@ -199,6 +205,7 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 			(&facilities[i]).ModifiedBy = currentUser.Username
 		}
 
+		// insert the facilities to the database
 		if dbErr = tx.Create(targetFacilities).Error; dbErr != nil {
 			return dbErr
 		}

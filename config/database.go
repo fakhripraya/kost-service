@@ -32,7 +32,7 @@ func BuildDBConfig(db *entities.DatabaseConfiguration) *DBConfig {
 	return &dbConfig
 }
 
-// DbURL is a function that returns the connected db url
+// DbURL is a function that returns the connected db DSN
 func DbURL(dbConfig *DBConfig) string {
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",

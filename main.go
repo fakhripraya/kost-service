@@ -58,14 +58,8 @@ func main() {
 	var appConfig entities.Configuration
 	data.ConfigInit(&appConfig)
 
-	// Open the database connection based on DB configuration
-	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
-	// config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig(&appConfig.Database)))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	// initialize db session based on dialector
+	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	config.DB, err = gorm.Open(mysql.Open(config.DbURL(config.BuildDBConfig(&appConfig.Database))), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -104,7 +98,7 @@ func main() {
 	// get handlers
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
 
-	// get kost handler
+	// get kost handlers
 	getRequest.HandleFunc("/", kostHandler.GetKost)
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)

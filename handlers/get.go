@@ -43,7 +43,7 @@ func (kostHandler *KostHandler) GetMyKost(rw http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// parse the request body to the given instance
+	// parse the given instance to the response writer
 	err = data.ToJSON(myKost, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
@@ -77,7 +77,7 @@ func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// parse the request body to the given instance
+	// parse the given instance to the response writer
 	err = data.ToJSON(kostList, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)

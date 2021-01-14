@@ -26,10 +26,10 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// proceed to create the new user with transaction scope
+	// proceed to create the new kost with transaction scope
 	err = config.DB.Transaction(func(tx *gorm.DB) error {
 
-		// do some database operations in the transaction (use 'tx' from this point, not 'db')
+		// set variables
 		var newKost database.DBKost
 		var dbErr error
 
@@ -70,7 +70,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		}
 
-		// add the current room to the database
+		// add the kost facilities to the database
 		dbErr = kostHandler.kost.AddFacilities(currentUser, newKost.ID, kostReq.Facilities)
 
 		// return nil will commit the whole transaction
@@ -86,6 +86,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	data.ToJSON(&GenericError{Message: "Sukses menambah kost baru"}, rw)
 	rw.WriteHeader(http.StatusOK)
 	return
 }

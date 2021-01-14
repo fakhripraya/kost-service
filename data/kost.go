@@ -137,7 +137,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		}
 
 		newKostRoom.RoomAreaUOM = targetKostRoom.RoomAreaUOM
-		newKostRoom.AvailableRoom = targetKostRoom.AvailableRoom
+		newKostRoom.MaxPerson = targetKostRoom.MaxPerson
 		newKostRoom.FloorLevel = targetKostRoom.FloorLevel
 		newKostRoom.IsActive = true
 		newKostRoom.Created = time.Now().Local()
@@ -149,6 +149,30 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		if dbErr = tx.Create(&newKostRoom).Error; dbErr != nil {
 			return dbErr
 		}
+
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
+			var roomDetails = targetKostRoom.RoomDetails
+
+			// add the room id to the slices
+			for i := range roomDetails {
+				(&roomDetails[i]).RoomID = newKostRoom.ID
+				(&roomDetails[i]).Created = time.Now().Local()
+				(&roomDetails[i]).CreatedBy = currentUser.Username
+				(&roomDetails[i]).Modified = time.Now().Local()
+				(&roomDetails[i]).ModifiedBy = currentUser.Username
+			}
+
+			// insert the new room details to database
+			if dbErr2 = tx2.Create(&roomDetails).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
 
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 

@@ -47,21 +47,34 @@ type KostPict struct {
 
 // KostRoom is an entity to communicate with the kost room client side
 type KostRoom struct {
-	ID            uint                      `json:"id"`
-	KostID        uint                      `json:"kost_id"`
-	RoomDesc      string                    `json:"room_desc"`
-	RoomPrice     uint64                    `json:"room_price"`
-	RoomPriceUOM  uint                      `json:"room_price_uom"`
-	RoomArea      uint64                    `json:"room_area"`
-	RoomAreaUOM   uint                      `json:"room_area_uom"`
-	AvailableRoom uint                      `json:"available_room"`
-	FloorLevel    uint                      `json:"floor_level"`
-	RoomPicts     []database.DBKostRoomPict `json:"room_picts"`
-	IsActive      bool                      `json:"is_active"`
-	Created       time.Time                 `json:"created"`
-	CreatedBy     string                    `json:"created_by"`
-	Modified      time.Time                 `json:"modified"`
-	ModifiedBy    string                    `json:"modified_by"`
+	ID           uint                        `json:"id"`
+	KostID       uint                        `json:"kost_id"`
+	RoomDesc     string                      `json:"room_desc"`
+	RoomPrice    uint64                      `json:"room_price"`
+	RoomPriceUOM uint                        `json:"room_price_uom"`
+	RoomArea     uint64                      `json:"room_area"`
+	RoomAreaUOM  uint                        `json:"room_area_uom"`
+	MaxPerson    uint                        `json:"max_person"`
+	FloorLevel   uint                        `json:"floor_level"`
+	IsActive     bool                        `json:"is_active"`
+	RoomPicts    []database.DBKostRoomPict   `json:"room_picts"`
+	RoomDetails  []database.DBKostRoomDetail `json:"room_detail"`
+	Created      time.Time                   `json:"created"`
+	CreatedBy    string                      `json:"created_by"`
+	Modified     time.Time                   `json:"modified"`
+	ModifiedBy   string                      `json:"modified_by"`
+}
+
+// KostRoomDetail is an entity to communicate with the kost room detail client side
+type KostRoomDetail struct {
+	ID         uint      `json:"id"`
+	RoomID     uint      `json:"room_id"`
+	RoomNumber string    `json:"room_number"`
+	IsActive   bool      `json:"is_active"`
+	Created    time.Time `json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
 }
 
 // KostRoomPict is an entity to communicate with the kost room pict client side
@@ -79,6 +92,7 @@ type KostRoomPict struct {
 
 // KostFacilities is an entity to communicate with the kost facilities client side
 type KostFacilities struct {
+	ID         uint      `json:"id"`
 	FacID      uint      `json:"fac_id"`
 	KostID     uint      `json:"kost_id"`
 	Created    time.Time `json:"created"`

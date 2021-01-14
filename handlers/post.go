@@ -48,7 +48,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		newKost.UpRateExpired = time.Now().Local()
 		newKost.IsVerified = false
 		newKost.IsActive = false
-		newKost.StatusAktif = 0
+		newKost.StatusAktif = 0 // TODO: create a documented status later
 		newKost.Created = time.Now().Local()
 		newKost.CreatedBy = currentUser.Username
 		newKost.Modified = time.Now().Local()
@@ -56,6 +56,30 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		if dbErr = tx.Create(&newKost).Error; dbErr != nil {
 			return dbErr
+		}
+
+		// loop the room slices
+		for _, room := range kostReq.Rooms {
+
+			// add the current room to the database
+			dbErr = kostHandler.kost.AddRoom(currentUser, newKost.ID, &room)
+
+			if dbErr != nil {
+				return dbErr
+			}
+
+		}
+
+		// loop the facilities slices
+		for _, facs := range kostReq.Facilities {
+
+			// add the current room to the database
+			dbErr = kostHandler.kost.AddFacilities(currentUser, newKost.ID, &facs)
+
+			if dbErr != nil {
+				return dbErr
+			}
+
 		}
 
 		// return nil will commit the whole transaction

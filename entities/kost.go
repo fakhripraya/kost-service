@@ -4,33 +4,50 @@ import "time"
 
 // Kost is an entity to communicate with Kost table in database
 type Kost struct {
-	ID            uint       `json:"id"`
-	OwnerID       uint       `json:"owner_id"`
-	TypeID        uint       `json:"type_id"`
-	KostCode      string     `json:"kost_code"`
-	KostName      string     `json:"kost_name"`
-	Country       string     `json:"country"`
-	City          string     `json:"city"`
-	Address       string     `json:"address"`
-	UpRate        uint64     `json:"up_rate"`
-	UpRateExpired time.Time  `json:"up_rate_expired"`
-	Rate          uint64     `json:"rate"`
-	Room          []KostRoom `json:"rooms"`
-	IsVerified    bool       `json:"is_verified"`
-	IsActive      bool       `json:"is_active"`
-	StatusAktif   uint64     `json:"status_aktif"`
-	Created       time.Time  `json:"created"`
-	CreatedBy     string     `json:"created_by"`
-	Modified      time.Time  `json:"modified"`
-	ModifiedBy    string     `json:"modified_by"`
+	ID            uint               `json:"id"`
+	OwnerID       uint               `json:"owner_id"`
+	TypeID        uint               `json:"type_id"`
+	KostCode      string             `json:"kost_code"`
+	KostName      string             `json:"kost_name"`
+	Country       string             `json:"country"`
+	City          string             `json:"city"`
+	Address       string             `json:"address"`
+	UpRate        uint64             `json:"up_rate"`
+	UpRateExpired time.Time          `json:"up_rate_expired"`
+	Rate          uint64             `json:"rate"`
+	Rooms         []KostRoom         `json:"rooms"`
+	Facilities    []MasterFacilities `json:"facilities"`
+	IsVerified    bool               `json:"is_verified"`
+	IsActive      bool               `json:"is_active"`
+	StatusAktif   uint64             `json:"status_aktif"`
+	ThumbnailURL  string             `json:"thumbnail_url"`
+	Created       time.Time          `json:"created"`
+	CreatedBy     string             `json:"created_by"`
+	Modified      time.Time          `json:"modified"`
+	ModifiedBy    string             `json:"modified_by"`
 }
 
 // KostRoom is an entity to communicate with KostRoom table in database
 type KostRoom struct {
+	ID         uint           `json:"id"`
+	KostID     uint           `json:"kost_id"`
+	RoomDesc   string         `json:"room_desc"`
+	RoomPrice  uint64         `json:"room_price"`
+	RoomArea   uint64         `json:"room_area"`
+	RoomPicts  []KostRoomPict `json:"room_picts"`
+	IsActive   bool           `json:"is_active"`
+	Created    time.Time      `json:"created"`
+	CreatedBy  string         `json:"created_by"`
+	Modified   time.Time      `json:"modified"`
+	ModifiedBy string         `json:"modified_by"`
+}
+
+// KostRoomPict is an entity to communicate with KostRoomPict table in database
+type KostRoomPict struct {
 	ID         uint      `json:"id"`
-	KostID     string    `json:"type_code"`
-	RoomDesc   string    `json:"type_desc"`
-	RoomPrice  string    `json:"room_price"`
+	RoomID     uint      `json:"room_id"`
+	PictDesc   string    `json:"pict_desc"`
+	URL        string    `json:"url"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`
@@ -51,7 +68,6 @@ type KostFacilities struct {
 // MasterKostType is an entity to communicate with MasterKostType table in database
 type MasterKostType struct {
 	ID         uint      `json:"id"`
-	TypeCode   string    `json:"type_code"`
 	TypeDesc   string    `json:"type_desc"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
@@ -63,7 +79,6 @@ type MasterKostType struct {
 // MasterFacilities is an entity to communicate with MasterFacilities table in database
 type MasterFacilities struct {
 	ID         uint      `json:"id"`
-	FacCode    string    `json:"fac_code"`
 	FacName    string    `json:"fac_name"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`

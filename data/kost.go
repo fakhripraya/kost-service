@@ -12,6 +12,7 @@ import (
 	"github.com/fakhripraya/kost-service/database"
 	"github.com/fakhripraya/kost-service/entities"
 	"github.com/hashicorp/go-hclog"
+	"github.com/jinzhu/gorm"
 	"github.com/srinathgs/mysqlstore"
 )
 
@@ -92,7 +93,111 @@ func (kost *Kost) GenerateCode(kostType, country, city string) (string, error) {
 }
 
 // UpdateKost is a function to update the given kost model
-func (kost *Kost) UpdateKost(targetUser *entities.Kost) error {
+func (kost *Kost) UpdateKost(targetKost *entities.Kost) error {
+
+	return nil
+}
+
+// AddRoom is a function to add kost room based on the given kost id
+func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetKostRoom *entities.KostRoom) error {
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+
+		// do some database operations in the transaction (use 'tx' from this point, not 'db')
+		var newKostRoom database.DBKostRoom
+		var dbErr error
+
+		newKostRoom.KostID = kostID
+		newKostRoom.RoomDesc = targetKostRoom.RoomDesc
+		newKostRoom.RoomPrice = targetKostRoom.RoomPrice
+		newKostRoom.RoomArea = targetKostRoom.RoomArea
+		newKostRoom.IsActive = true
+		newKostRoom.Created = time.Now().Local()
+		newKostRoom.CreatedBy = currentUser.Username
+		newKostRoom.Modified = time.Now().Local()
+		newKostRoom.ModifiedBy = currentUser.Username
+
+		if dbErr = tx.Create(&newKostRoom).Error; dbErr != nil {
+			return dbErr
+		}
+
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var newKostRoomPict database.DBKostRoomPict
+			var dbErr2 error
+
+			// loop the room pict slices
+			for _, roomPic := range targetKostRoom.RoomPicts {
+
+				newKostRoomPict.RoomID = newKostRoom.ID
+				newKostRoomPict.PictDesc = roomPic.PictDesc
+				newKostRoomPict.URL = roomPic.URL
+				newKostRoomPict.IsActive = true
+				newKostRoomPict.Created = time.Now().Local()
+				newKostRoomPict.CreatedBy = currentUser.Username
+				newKostRoomPict.Modified = time.Now().Local()
+				newKostRoomPict.ModifiedBy = currentUser.Username
+
+				if dbErr2 = tx.Create(&newKostRoomPict).Error; dbErr2 != nil {
+					return dbErr2
+				}
+
+			}
+
+			return nil
+		})
+
+		// if transaction error
+		if dbErr != nil {
+
+			return dbErr
+		}
+
+		// return nil will commit the whole transaction
+		return nil
+
+	})
+
+	// if transaction error
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// AddFacilities is a function to add kost facilities based on the given kost id
+func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, targetFacilities *entities.MasterFacilities) error {
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+
+		// do some database operations in the transaction (use 'tx' from this point, not 'db')
+		var newKostFacilities database.DBKostFacilities
+		var dbErr error
+
+		newKostFacilities.KostID = kostID
+		newKostFacilities.FacID = targetFacilities.ID
+		newKostFacilities.Created = time.Now().Local()
+		newKostFacilities.CreatedBy = currentUser.Username
+		newKostFacilities.Modified = time.Now().Local()
+		newKostFacilities.ModifiedBy = currentUser.Username
+
+		if dbErr = tx.Create(&newKostFacilities).Error; dbErr != nil {
+			return dbErr
+		}
+
+		// return nil will commit the whole transaction
+		return nil
+
+	})
+
+	// if transaction error
+	if err != nil {
+
+		return err
+	}
 
 	return nil
 }

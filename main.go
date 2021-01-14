@@ -17,9 +17,10 @@ import (
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
-	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/srinathgs/mysqlstore"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var err error
@@ -59,12 +60,24 @@ func main() {
 
 	// Open the database connection based on DB configuration
 	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
-	config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig(&appConfig.Database)))
+	// config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig(&appConfig.Database)))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// initialize db session based on dialector
+	config.DB, err = gorm.Open(mysql.Open(config.DbURL(config.BuildDBConfig(&appConfig.Database))), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer config.DB.Close()
+	// Open the database connection based on the initialized db session
+	mySQLDB, err := config.DB.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer mySQLDB.Close()
 
 	// Creates a session store based on MYSQL database
 	// If table doesn't exist, creates a new one

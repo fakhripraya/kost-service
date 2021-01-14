@@ -27,16 +27,18 @@ type DBKost struct {
 
 // DBKostRoom is an entity that directly communicate with the KostRoom table in the database
 type DBKostRoom struct {
-	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
-	KostID     uint      `gorm:"not null" json:"kost_id"`
-	RoomDesc   string    `gorm:"not null" json:"room_desc"`
-	RoomPrice  uint64    `gorm:"not null" json:"room_price"`
-	RoomArea   uint64    `gorm:"not null" json:"room_area"`
-	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
-	Created    time.Time `gorm:"type:datetime" json:"created"`
-	CreatedBy  string    `json:"created_by"`
-	Modified   time.Time `gorm:"type:datetime" json:"modified"`
-	ModifiedBy string    `json:"modified_by"`
+	ID           uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID       uint      `gorm:"not null" json:"kost_id"`
+	RoomDesc     string    `gorm:"not null" json:"room_desc"`
+	RoomPrice    uint64    `gorm:"not null" json:"room_price"`
+	RoomPriceUOM uint      `gorm:"not null" json:"room_price_uom"`
+	RoomArea     uint64    `gorm:"not null" json:"room_area"`
+	RoomAreaUOM  uint      `gorm:"not null" json:"room_area_uom"`
+	IsActive     bool      `gorm:"not null;default:true" json:"is_active"`
+	Created      time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy    string    `json:"created_by"`
+	Modified     time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy   string    `json:"modified_by"`
 }
 
 // DBKostRoomPict is an entity that directly communicate with the KostRoomPict table in the database
@@ -54,8 +56,8 @@ type DBKostRoomPict struct {
 
 // DBKostFacilities is an entity that directly communicate with the KostFacilities table in the database
 type DBKostFacilities struct {
-	FacID      uint      `gorm:"not null" json:"fac_id"`
-	KostID     uint      `gorm:"not null" json:"kost_id"`
+	FacID      uint      `gorm:"primary_key;not null" json:"fac_id"`
+	KostID     uint      `gorm:"primary_key;not null" json:"kost_id"`
 	Created    time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy  string    `json:"created_by"`
 	Modified   time.Time `gorm:"type:datetime" json:"modified"`

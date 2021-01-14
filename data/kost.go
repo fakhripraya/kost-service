@@ -2,6 +2,7 @@ package data
 
 import (
 	"crypto/rand"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -12,8 +13,8 @@ import (
 	"github.com/fakhripraya/kost-service/database"
 	"github.com/fakhripraya/kost-service/entities"
 	"github.com/hashicorp/go-hclog"
-	"github.com/jinzhu/gorm"
 	"github.com/srinathgs/mysqlstore"
+	"gorm.io/gorm"
 )
 
 // Claims determine the current user token holder
@@ -105,12 +106,34 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
 		var newKostRoom database.DBKostRoom
+		var targetPriceUOM database.MasterUOM
+		var targetAreaUOM database.MasterUOM
 		var dbErr error
 
 		newKostRoom.KostID = kostID
 		newKostRoom.RoomDesc = targetKostRoom.RoomDesc
 		newKostRoom.RoomPrice = targetKostRoom.RoomPrice
+
+		if dbErr := config.DB.Where("id = ?", targetKostRoom.RoomPriceUOM).First(&targetPriceUOM).Error; dbErr != nil {
+			return dbErr
+		}
+
+		if targetPriceUOM.UOMType != "currency" {
+			return fmt.Errorf("Invalid UOM Type")
+		}
+
+		newKostRoom.RoomPriceUOM = targetKostRoom.RoomPriceUOM
 		newKostRoom.RoomArea = targetKostRoom.RoomArea
+
+		if dbErr := config.DB.Where("id = ?", targetKostRoom.RoomAreaUOM).First(&targetAreaUOM).Error; dbErr != nil {
+			return dbErr
+		}
+
+		if targetAreaUOM.UOMType != "length" {
+			return fmt.Errorf("Invalid UOM Type")
+		}
+
+		newKostRoom.RoomAreaUOM = targetKostRoom.RoomAreaUOM
 		newKostRoom.IsActive = true
 		newKostRoom.Created = time.Now().Local()
 		newKostRoom.CreatedBy = currentUser.Username
@@ -124,25 +147,17 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
 			// create the variable specific to the nested transaction
-			var newKostRoomPict database.DBKostRoomPict
 			var dbErr2 error
+			var roomPicts = targetKostRoom.RoomPicts
 
-			// loop the room pict slices
-			for _, roomPic := range targetKostRoom.RoomPicts {
+			// add the room id
+			for i := range roomPicts {
+				(&roomPicts[i]).RoomID = newKostRoom.ID
+			}
 
-				newKostRoomPict.RoomID = newKostRoom.ID
-				newKostRoomPict.PictDesc = roomPic.PictDesc
-				newKostRoomPict.URL = roomPic.URL
-				newKostRoomPict.IsActive = true
-				newKostRoomPict.Created = time.Now().Local()
-				newKostRoomPict.CreatedBy = currentUser.Username
-				newKostRoomPict.Modified = time.Now().Local()
-				newKostRoomPict.ModifiedBy = currentUser.Username
-
-				if dbErr2 = tx.Create(&newKostRoomPict).Error; dbErr2 != nil {
-					return dbErr2
-				}
-
+			// insert to database
+			if dbErr2 = tx2.Create(&roomPicts).Error; dbErr2 != nil {
+				return dbErr2
 			}
 
 			return nil
@@ -169,22 +184,22 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 }
 
 // AddFacilities is a function to add kost facilities based on the given kost id
-func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, targetFacilities *entities.MasterFacilities) error {
+func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, targetFacilities []database.DBKostFacilities) error {
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
-		// do some database operations in the transaction (use 'tx' from this point, not 'db')
-		var newKostFacilities database.DBKostFacilities
 		var dbErr error
+		var facilities = targetFacilities
 
-		newKostFacilities.KostID = kostID
-		newKostFacilities.FacID = targetFacilities.ID
-		newKostFacilities.Created = time.Now().Local()
-		newKostFacilities.CreatedBy = currentUser.Username
-		newKostFacilities.Modified = time.Now().Local()
-		newKostFacilities.ModifiedBy = currentUser.Username
+		// add the CRUD record time
+		for i := range facilities {
+			(&facilities[i]).Created = time.Now().Local()
+			(&facilities[i]).CreatedBy = currentUser.Username
+			(&facilities[i]).Modified = time.Now().Local()
+			(&facilities[i]).ModifiedBy = currentUser.Username
+		}
 
-		if dbErr = tx.Create(&newKostFacilities).Error; dbErr != nil {
+		if dbErr = tx.Create(targetFacilities).Error; dbErr != nil {
 			return dbErr
 		}
 

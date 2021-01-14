@@ -8,7 +8,7 @@ import (
 	"github.com/fakhripraya/kost-service/data"
 	"github.com/fakhripraya/kost-service/database"
 	"github.com/fakhripraya/kost-service/entities"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // AddKost is a method to add the new given kost info
@@ -70,17 +70,8 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		}
 
-		// loop the facilities slices
-		for _, facs := range kostReq.Facilities {
-
-			// add the current room to the database
-			dbErr = kostHandler.kost.AddFacilities(currentUser, newKost.ID, &facs)
-
-			if dbErr != nil {
-				return dbErr
-			}
-
-		}
+		// add the current room to the database
+		dbErr = kostHandler.kost.AddFacilities(currentUser, newKost.ID, kostReq.Facilities)
 
 		// return nil will commit the whole transaction
 		return nil

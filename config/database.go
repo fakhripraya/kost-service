@@ -5,7 +5,7 @@ import (
 
 	"github.com/fakhripraya/kost-service/entities"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // DB is an ORM for MYSQL database

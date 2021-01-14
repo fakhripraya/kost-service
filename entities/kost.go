@@ -58,7 +58,7 @@ type KostRoom struct {
 	FloorLevel   uint                        `json:"floor_level"`
 	IsActive     bool                        `json:"is_active"`
 	RoomPicts    []database.DBKostRoomPict   `json:"room_picts"`
-	RoomDetails  []database.DBKostRoomDetail `json:"room_detail"`
+	RoomDetails  []database.DBKostRoomDetail `json:"room_details"`
 	Created      time.Time                   `json:"created"`
 	CreatedBy    string                      `json:"created_by"`
 	Modified     time.Time                   `json:"modified"`

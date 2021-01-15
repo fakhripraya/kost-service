@@ -18,8 +18,8 @@ type KostHandler struct {
 }
 
 // NewKostHandler returns a new Kost handler with the given logger
-func NewKostHandler(newLogger hclog.Logger, newUser *data.Kost, newStore *mysqlstore.MySQLStore) *KostHandler {
-	return &KostHandler{newLogger, newUser, newStore}
+func NewKostHandler(newLogger hclog.Logger, newKost *data.Kost, newStore *mysqlstore.MySQLStore) *KostHandler {
+	return &KostHandler{newLogger, newKost, newStore}
 }
 
 // GenericError is a generic error message returned by a server

@@ -35,6 +35,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		newKost.OwnerID = currentUser.ID
 		newKost.TypeID = kostReq.TypeID
+		newKost.StatusID = 0 // TODO: create a documented status later
 		newKost.KostCode, dbErr = kostHandler.kost.GenerateCode("k", kostReq.Country[0:1], kostReq.City[0:1])
 		if dbErr != nil {
 			return dbErr
@@ -48,7 +49,6 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		newKost.UpRateExpired = time.Now().Local()
 		newKost.IsVerified = false
 		newKost.IsActive = false
-		newKost.StatusAktif = 0 // TODO: create a documented status later
 		newKost.Created = time.Now().Local()
 		newKost.CreatedBy = currentUser.Username
 		newKost.Modified = time.Now().Local()

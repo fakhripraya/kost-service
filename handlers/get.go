@@ -56,7 +56,7 @@ func (kostHandler *KostHandler) GetMyKost(rw http.ResponseWriter, r *http.Reques
 	return
 }
 
-// GetMyKostList is a method to fetch the given kost info
+// GetMyKostList is a method to fetch the list of the given kost info
 func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Request) {
 
 	// get the current user login

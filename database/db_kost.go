@@ -7,6 +7,7 @@ type DBKost struct {
 	ID            uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	OwnerID       uint      `gorm:"not null" json:"owner_id"`
 	TypeID        uint      `gorm:"not null" json:"type_id"`
+	StatusID      uint64    `gorm:"not null" json:"status_id"`
 	KostCode      string    `gorm:"not null" json:"kost_code"`
 	KostName      string    `gorm:"not null" json:"kost_name"`
 	Country       string    `gorm:"not null" json:"country"`
@@ -17,7 +18,6 @@ type DBKost struct {
 	Rate          uint64    `json:"rate"`
 	IsVerified    bool      `gorm:"not null;default:false" json:"is_verified"`
 	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
-	StatusAktif   uint64    `gorm:"not null;default:0" json:"status_aktif"`
 	ThumbnailURL  string    `json:"thumbnail_url"`
 	Created       time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy     string    `json:"created_by"`

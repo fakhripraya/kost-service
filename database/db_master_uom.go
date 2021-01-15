@@ -7,7 +7,7 @@ type MasterUOM struct {
 	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	UOMType    string    `gorm:"not null" json:"uom_type"`
 	UOMDesc    string    `gorm:"not null" json:"uom_desc"`
-	UOMRate    string    `gorm:"not null" json:"uom_rate"`
+	UOMRate    float64   `gorm:"not null" json:"uom_rate"`
 	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
 	Created    time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy  string    `json:"created_by"`

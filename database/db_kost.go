@@ -15,7 +15,7 @@ type DBKost struct {
 	Address       string    `gorm:"not null" json:"address"`
 	UpRate        uint64    `json:"up_rate"`
 	UpRateExpired time.Time `json:"up_rate_expired"`
-	Rate          uint64    `json:"rate"`
+	Rate          float64   `json:"rate"`
 	IsVerified    bool      `gorm:"not null;default:false" json:"is_verified"`
 	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
 	ThumbnailURL  string    `json:"thumbnail_url"`
@@ -43,9 +43,9 @@ type DBKostRoom struct {
 	ID           uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	KostID       uint      `gorm:"not null" json:"kost_id"`
 	RoomDesc     string    `gorm:"not null" json:"room_desc"`
-	RoomPrice    uint64    `gorm:"not null" json:"room_price"`
+	RoomPrice    float64   `gorm:"not null" json:"room_price"`
 	RoomPriceUOM uint      `gorm:"not null" json:"room_price_uom"`
-	RoomArea     uint64    `gorm:"not null" json:"room_area"`
+	RoomArea     float64   `gorm:"not null" json:"room_area"`
 	RoomAreaUOM  uint      `gorm:"not null" json:"room_area_uom"`
 	MaxPerson    uint      `gorm:"not null" json:"max_person"`
 	FloorLevel   uint      `gorm:"not null" json:"floor_level"`
@@ -97,9 +97,19 @@ func (dbKost *DBKost) KostTable() string {
 	return "dbKost"
 }
 
+// KostPictTable set the migrated struct table name
+func (dbKostPict *DBKostPict) KostPictTable() string {
+	return "dbKostPict"
+}
+
 // KostRoomTable set the migrated struct table name
 func (dbKostRoom *DBKostRoom) KostRoomTable() string {
 	return "dbKostRoom"
+}
+
+// KostRoomDetailTable set the migrated struct table name
+func (dbKostRoomDetail *DBKostRoomDetail) KostRoomDetailTable() string {
+	return "dbKostRoomDetail"
 }
 
 // KostRoomPictTable set the migrated struct table name

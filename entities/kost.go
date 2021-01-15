@@ -18,7 +18,7 @@ type Kost struct {
 	Address       string                      `json:"address"`
 	UpRate        uint64                      `json:"up_rate"`
 	UpRateExpired time.Time                   `json:"up_rate_expired"`
-	Rate          uint64                      `json:"rate"`
+	Rate          float64                     `json:"rate"`
 	Rooms         []KostRoom                  `json:"rooms"`
 	Facilities    []database.DBKostFacilities `json:"facilities"`
 	KostPicts     []database.DBKostPict       `json:"kost_picts"`
@@ -50,9 +50,9 @@ type KostRoom struct {
 	ID           uint                        `json:"id"`
 	KostID       uint                        `json:"kost_id"`
 	RoomDesc     string                      `json:"room_desc"`
-	RoomPrice    uint64                      `json:"room_price"`
+	RoomPrice    float64                     `json:"room_price"`
 	RoomPriceUOM uint                        `json:"room_price_uom"`
-	RoomArea     uint64                      `json:"room_area"`
+	RoomArea     float64                     `json:"room_area"`
 	RoomAreaUOM  uint                        `json:"room_area_uom"`
 	MaxPerson    uint                        `json:"max_person"`
 	FloorLevel   uint                        `json:"floor_level"`

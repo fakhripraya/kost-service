@@ -229,6 +229,7 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 
 		// add the CRUD record time to the slices
 		for i := range facilities {
+			(&facilities[i]).KostID = kostID
 			(&facilities[i]).Created = time.Now().Local()
 			(&facilities[i]).CreatedBy = currentUser.Username
 			(&facilities[i]).Modified = time.Now().Local()

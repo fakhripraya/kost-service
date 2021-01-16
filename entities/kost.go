@@ -11,6 +11,7 @@ type Kost struct {
 	ID            uint                        `json:"id"`
 	OwnerID       uint                        `json:"owner_id"`
 	TypeID        uint                        `json:"type_id"`
+	Status        uint                        `json:"status"`
 	KostCode      string                      `json:"kost_code"`
 	KostName      string                      `json:"kost_name"`
 	Country       string                      `json:"country"`
@@ -21,15 +22,27 @@ type Kost struct {
 	Rate          float64                     `json:"rate"`
 	Rooms         []KostRoom                  `json:"rooms"`
 	Facilities    []database.DBKostFacilities `json:"facilities"`
+	KostPeriods   []database.DBKostPeriod     `json:"kost_periods"`
 	KostPicts     []database.DBKostPict       `json:"kost_picts"`
 	IsVerified    bool                        `json:"is_verified"`
 	IsActive      bool                        `json:"is_active"`
-	StatusAktif   uint64                      `json:"status_aktif"`
 	ThumbnailURL  string                      `json:"thumbnail_url"`
 	Created       time.Time                   `json:"created"`
 	CreatedBy     string                      `json:"created_by"`
 	Modified      time.Time                   `json:"modified"`
 	ModifiedBy    string                      `json:"modified_by"`
+}
+
+// KostPeriod is an entity to communicate with the kost period client side
+type KostPeriod struct {
+	ID         uint      `json:"id"`
+	KostID     uint      `json:"kost_id"`
+	PeriodID   uint      `json:"period_id"`
+	IsActive   bool      `json:"is_active"`
+	Created    time.Time `json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
 }
 
 // KostPict is an entity to communicate with the kost pict client side
@@ -116,17 +129,6 @@ type MasterKostType struct {
 type MasterFacilities struct {
 	ID         uint      `json:"id"`
 	FacName    string    `json:"fac_name"`
-	IsActive   bool      `json:"is_active"`
-	Created    time.Time `json:"created"`
-	CreatedBy  string    `json:"created_by"`
-	Modified   time.Time `json:"modified"`
-	ModifiedBy string    `json:"modified_by"`
-}
-
-// MasterStatusKost is an entity to communicate with the master status kost client side
-type MasterStatusKost struct {
-	ID         uint      `json:"id"`
-	StatusDesc string    `json:"status_desc"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`

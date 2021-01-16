@@ -7,7 +7,7 @@ type DBKost struct {
 	ID            uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	OwnerID       uint      `gorm:"not null" json:"owner_id"`
 	TypeID        uint      `gorm:"not null" json:"type_id"`
-	StatusID      uint64    `gorm:"not null" json:"status_id"`
+	Status        uint      `gorm:"not null" json:"status"`
 	KostCode      string    `gorm:"not null" json:"kost_code"`
 	KostName      string    `gorm:"not null" json:"kost_name"`
 	Country       string    `gorm:"not null" json:"country"`
@@ -23,6 +23,18 @@ type DBKost struct {
 	CreatedBy     string    `json:"created_by"`
 	Modified      time.Time `gorm:"type:datetime" json:"modified"`
 	ModifiedBy    string    `json:"modified_by"`
+}
+
+// DBKostPeriod is an entity that directly communicate with the Kost period table in the database
+type DBKostPeriod struct {
+	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID     uint      `gorm:"not null" json:"kost_id"`
+	PeriodID   uint      `gorm:"not null" json:"period_id"`
+	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
+	Created    time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
 }
 
 // DBKostPict is an entity that directly communicate with the KostPict table in the database
@@ -86,6 +98,7 @@ type DBKostFacilities struct {
 	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	FacID      uint      `gorm:"not null" json:"fac_id"`
 	KostID     uint      `gorm:"not null" json:"kost_id"`
+	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
 	Created    time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy  string    `json:"created_by"`
 	Modified   time.Time `gorm:"type:datetime" json:"modified"`
@@ -95,6 +108,11 @@ type DBKostFacilities struct {
 // KostTable set the migrated struct table name
 func (dbKost *DBKost) KostTable() string {
 	return "dbKost"
+}
+
+// KostPeriodTable set the migrated struct table name
+func (dbKostPeriod *DBKostPeriod) KostPeriodTable() string {
+	return "dbKostPeriod"
 }
 
 // KostPictTable set the migrated struct table name

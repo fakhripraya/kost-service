@@ -66,7 +66,7 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 }
 
 // GenerateCode will generate the new given type code
-func (kost *Kost) GenerateCode(kostType, country, city string) (string, error) {
+func (kost *Kost) GenerateCode(codeType, country, city string) (string, error) {
 
 	// generate 8 random crypted number
 	var max int = 8
@@ -84,7 +84,7 @@ func (kost *Kost) GenerateCode(kostType, country, city string) (string, error) {
 	// returns the crypted random 8 number
 	var crypted string = string(b)
 
-	var finalCode string = kostType +
+	var finalCode string = codeType +
 		"/" + country +
 		"-" + city +
 		"/" + strconv.Itoa(time.Now().UTC().Year()) + "-" + time.Now().UTC().Month().String()[0:1] +
@@ -92,12 +92,6 @@ func (kost *Kost) GenerateCode(kostType, country, city string) (string, error) {
 
 	return finalCode, nil
 
-}
-
-// UpdateKost is a function to update the given kost model
-func (kost *Kost) UpdateKost(targetKost *entities.Kost) error {
-
-	return nil
 }
 
 // AddRoom is a function to add kost room based on the given kost id
@@ -115,7 +109,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		newKostRoom.RoomDesc = targetKostRoom.RoomDesc
 		newKostRoom.RoomPrice = targetKostRoom.RoomPrice
 
-		if dbErr := config.DB.Where("id = ?", targetKostRoom.RoomPriceUOM).First(&targetPriceUOM).Error; dbErr != nil {
+		if dbErr = config.DB.Where("id = ?", targetKostRoom.RoomPriceUOM).First(&targetPriceUOM).Error; dbErr != nil {
 			return dbErr
 		}
 
@@ -127,7 +121,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		newKostRoom.RoomPriceUOM = targetKostRoom.RoomPriceUOM
 		newKostRoom.RoomArea = targetKostRoom.RoomArea
 
-		if dbErr := config.DB.Where("id = ?", targetKostRoom.RoomAreaUOM).First(&targetAreaUOM).Error; dbErr != nil {
+		if dbErr = config.DB.Where("id = ?", targetKostRoom.RoomAreaUOM).First(&targetAreaUOM).Error; dbErr != nil {
 			return dbErr
 		}
 
@@ -159,6 +153,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			// add the room id to the slices
 			for i := range roomDetails {
 				(&roomDetails[i]).RoomID = newKostRoom.ID
+				(&roomDetails[i]).IsActive = true
 				(&roomDetails[i]).Created = time.Now().Local()
 				(&roomDetails[i]).CreatedBy = currentUser.Username
 				(&roomDetails[i]).Modified = time.Now().Local()
@@ -174,6 +169,10 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			return nil
 		})
 
+		if dbErr != nil {
+			return dbErr
+		}
+
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
 			// create the variable specific to the nested transaction
@@ -183,6 +182,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			// add the room id to the slices
 			for i := range roomPicts {
 				(&roomPicts[i]).RoomID = newKostRoom.ID
+				(&roomPicts[i]).IsActive = true
 				(&roomPicts[i]).Created = time.Now().Local()
 				(&roomPicts[i]).CreatedBy = currentUser.Username
 				(&roomPicts[i]).Modified = time.Now().Local()
@@ -230,6 +230,7 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 		// add the CRUD record time to the slices
 		for i := range facilities {
 			(&facilities[i]).KostID = kostID
+			(&facilities[i]).IsActive = true
 			(&facilities[i]).Created = time.Now().Local()
 			(&facilities[i]).CreatedBy = currentUser.Username
 			(&facilities[i]).Modified = time.Now().Local()
@@ -251,6 +252,12 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 
 		return err
 	}
+
+	return nil
+}
+
+// UpdateKost is a function to update the given kost model
+func (kost *Kost) UpdateKost(targetKost *entities.Kost) error {
 
 	return nil
 }

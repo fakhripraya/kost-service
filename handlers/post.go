@@ -35,8 +35,9 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		newKost.OwnerID = currentUser.ID
 		newKost.TypeID = kostReq.TypeID
-		newKost.StatusID = 0 // TODO: create a documented status later
-		newKost.KostCode, dbErr = kostHandler.kost.GenerateCode("k", kostReq.Country[0:1], kostReq.City[0:1])
+		newKost.Status = 0 // TODO: create a documented status later
+		newKost.KostCode, dbErr = kostHandler.kost.GenerateCode("K", kostReq.Country[0:1], kostReq.City[0:1])
+
 		if dbErr != nil {
 			return dbErr
 		}
@@ -48,7 +49,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		newKost.UpRate = 0
 		newKost.UpRateExpired = time.Now().Local()
 		newKost.IsVerified = false
-		newKost.IsActive = false
+		newKost.IsActive = true
 		newKost.Created = time.Now().Local()
 		newKost.CreatedBy = currentUser.Username
 		newKost.Modified = time.Now().Local()
@@ -62,11 +63,41 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 			// create the variable specific to the nested transaction
 			var dbErr2 error
+			var kostPeriod = kostReq.KostPeriods
+
+			// add the kost id to the slices
+			for i := range kostPeriod {
+				(&kostPeriod[i]).KostID = newKost.ID
+				(&kostPeriod[i]).IsActive = true
+				(&kostPeriod[i]).Created = time.Now().Local()
+				(&kostPeriod[i]).CreatedBy = currentUser.Username
+				(&kostPeriod[i]).Modified = time.Now().Local()
+				(&kostPeriod[i]).ModifiedBy = currentUser.Username
+			}
+
+			// insert the new kost periods to database
+			if dbErr2 = tx2.Create(&kostPeriod).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
+		if dbErr != nil {
+			return dbErr
+		}
+
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
 			var kostPicts = kostReq.KostPicts
 
 			// add the kost id to the slices
 			for i := range kostPicts {
 				(&kostPicts[i]).KostID = newKost.ID
+				(&kostPicts[i]).IsActive = true
 				(&kostPicts[i]).Created = time.Now().Local()
 				(&kostPicts[i]).CreatedBy = currentUser.Username
 				(&kostPicts[i]).Modified = time.Now().Local()
@@ -82,6 +113,10 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 			return nil
 		})
 
+		if dbErr != nil {
+			return dbErr
+		}
+
 		// loop the room slices
 		for _, room := range kostReq.Rooms {
 
@@ -96,6 +131,10 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		// add the kost facilities to the database
 		dbErr = kostHandler.kost.AddFacilities(currentUser, newKost.ID, kostReq.Facilities)
+
+		if dbErr != nil {
+			return dbErr
+		}
 
 		// return nil will commit the whole transaction
 		return nil

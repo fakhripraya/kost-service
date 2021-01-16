@@ -16,9 +16,9 @@ type DBKost struct {
 	UpRate        uint64    `json:"up_rate"`
 	UpRateExpired time.Time `json:"up_rate_expired"`
 	Rate          float64   `json:"rate"`
+	ThumbnailURL  string    `json:"thumbnail_url"`
 	IsVerified    bool      `gorm:"not null;default:false" json:"is_verified"`
 	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
-	ThumbnailURL  string    `json:"thumbnail_url"`
 	Created       time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy     string    `json:"created_by"`
 	Modified      time.Time `gorm:"type:datetime" json:"modified"`

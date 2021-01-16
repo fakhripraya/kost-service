@@ -35,7 +35,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 
 		newKost.OwnerID = currentUser.ID
 		newKost.TypeID = kostReq.TypeID
-		newKost.Status = 0 // TODO: create a documented status later
+		newKost.Status = 0 // TODO: create a documented status later // status 0 = baru
 		newKost.KostCode, dbErr = kostHandler.kost.GenerateCode("K", kostReq.Country[0:1], kostReq.City[0:1])
 
 		if dbErr != nil {

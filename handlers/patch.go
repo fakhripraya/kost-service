@@ -15,7 +15,7 @@ import (
 func (kostHandler *KostHandler) AdminApprovalKost(rw http.ResponseWriter, r *http.Request) {
 
 	// get the approval via context
-	approvalReq := r.Context().Value(KeyApproval{}).(*entities.AdminApprovalKost)
+	approvalReq := r.Context().Value(KeyApproval{}).(*entities.ApprovalKost)
 
 	// get the current user login
 	var currentUser *database.MasterUser
@@ -33,6 +33,7 @@ func (kostHandler *KostHandler) AdminApprovalKost(rw http.ResponseWriter, r *htt
 		var targetKost database.DBKost
 		var dbErr error
 
+		// look for the existing kost by the given kost id
 		if dbErr := config.DB.Where("id = ?", approvalReq.KostID).First(&targetKost).Error; err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 

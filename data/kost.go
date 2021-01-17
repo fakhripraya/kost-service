@@ -49,7 +49,7 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 	if session.Values["userLoggedin"] == nil {
 		rw.WriteHeader(http.StatusUnauthorized)
 
-		return nil, err
+		return nil, fmt.Errorf("Error 401")
 	}
 
 	// work with database
@@ -97,6 +97,7 @@ func (kost *Kost) GenerateCode(codeType, country, city string) (string, error) {
 // AddRoom is a function to add kost room based on the given kost id
 func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetKostRoom *entities.KostRoom) error {
 
+	// add the kostReq room into the database with transaction scope
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
 		// set variables
@@ -109,6 +110,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		newKostRoom.RoomDesc = targetKostRoom.RoomDesc
 		newKostRoom.RoomPrice = targetKostRoom.RoomPrice
 
+		// look for the requested uom from the database
 		if dbErr = config.DB.Where("id = ?", targetKostRoom.RoomPriceUOM).First(&targetPriceUOM).Error; dbErr != nil {
 			return dbErr
 		}
@@ -121,6 +123,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		newKostRoom.RoomPriceUOM = targetKostRoom.RoomPriceUOM
 		newKostRoom.RoomArea = targetKostRoom.RoomArea
 
+		// look for the requested uom from the database
 		if dbErr = config.DB.Where("id = ?", targetKostRoom.RoomAreaUOM).First(&targetAreaUOM).Error; dbErr != nil {
 			return dbErr
 		}
@@ -144,6 +147,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			return dbErr
 		}
 
+		// add the room details into the database with transaction scope
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
 			// create the variable specific to the nested transaction
@@ -173,6 +177,7 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 			return dbErr
 		}
 
+		// add the room picts into the database with transaction scope
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
 			// create the variable specific to the nested transaction
@@ -221,13 +226,14 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 // AddFacilities is a function to add kost facilities based on the given kost id
 func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, targetFacilities []database.DBKostFacilities) error {
 
+	// add the room facilities into the database with transaction scope
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
 		// set variables
 		var dbErr error
 		var facilities = targetFacilities
 
-		// add the CRUD record time to the slices
+		// add the kost id to the slices
 		for i := range facilities {
 			(&facilities[i]).KostID = kostID
 			(&facilities[i]).IsActive = true

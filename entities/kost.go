@@ -25,8 +25,8 @@ type Kost struct {
 	KostPeriods   []database.DBKostPeriod     `json:"kost_periods"`
 	KostPicts     []database.DBKostPict       `json:"kost_picts"`
 	IsVerified    bool                        `json:"is_verified"`
-	IsActive      bool                        `json:"is_active"`
 	ThumbnailURL  string                      `json:"thumbnail_url"`
+	IsActive      bool                        `json:"is_active"`
 	Created       time.Time                   `json:"created"`
 	CreatedBy     string                      `json:"created_by"`
 	Modified      time.Time                   `json:"modified"`
@@ -69,9 +69,9 @@ type KostRoom struct {
 	RoomAreaUOM  uint                        `json:"room_area_uom"`
 	MaxPerson    uint                        `json:"max_person"`
 	FloorLevel   uint                        `json:"floor_level"`
-	IsActive     bool                        `json:"is_active"`
 	RoomPicts    []database.DBKostRoomPict   `json:"room_picts"`
 	RoomDetails  []database.DBKostRoomDetail `json:"room_details"`
+	IsActive     bool                        `json:"is_active"`
 	Created      time.Time                   `json:"created"`
 	CreatedBy    string                      `json:"created_by"`
 	Modified     time.Time                   `json:"modified"`
@@ -108,6 +108,7 @@ type KostFacilities struct {
 	ID         uint      `json:"id"`
 	FacID      uint      `json:"fac_id"`
 	KostID     uint      `json:"kost_id"`
+	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`
 	Modified   time.Time `json:"modified"`

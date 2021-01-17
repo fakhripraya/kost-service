@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// AddKost is a method to add the new given kost info
+// AddKost is a method to add the new given kost info to the database
 func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request) {
 
 	// get the kost via context
@@ -59,6 +59,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 			return dbErr
 		}
 
+		// proceed to create the new kost periods with transaction scope
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
 			// create the variable specific to the nested transaction
@@ -84,10 +85,12 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 			return nil
 		})
 
+		// if transaction error, return the error
 		if dbErr != nil {
 			return dbErr
 		}
 
+		// proceed to create the new kost picts with transaction scope
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
 			// create the variable specific to the nested transaction
@@ -113,6 +116,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 			return nil
 		})
 
+		// if transaction error, return the error
 		if dbErr != nil {
 			return dbErr
 		}
@@ -120,9 +124,10 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		// loop the room slices
 		for _, room := range kostReq.Rooms {
 
-			// add the current room to the database
+			// add the kostReq room slices into the database
 			dbErr = kostHandler.kost.AddRoom(currentUser, newKost.ID, &room)
 
+			// if transaction error, return the error
 			if dbErr != nil {
 				return dbErr
 			}
@@ -132,6 +137,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		// add the kost facilities to the database
 		dbErr = kostHandler.kost.AddFacilities(currentUser, newKost.ID, kostReq.Facilities)
 
+		// if transaction error, return the error
 		if dbErr != nil {
 			return dbErr
 		}

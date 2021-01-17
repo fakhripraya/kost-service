@@ -134,7 +134,7 @@ func (kostHandler *KostHandler) MiddlewareParseApprovalRequest(next http.Handler
 		rw.Header().Add("Content-Type", "application/json")
 
 		// create the approval instance
-		approval := &entities.AdminApprovalKost{}
+		approval := &entities.ApprovalKost{}
 
 		// parse the request body to the given instance
 		err := data.FromJSON(approval, r.Body)

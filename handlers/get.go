@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/fakhripraya/kost-service/config"
@@ -87,5 +88,31 @@ func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Re
 	}
 
 	rw.WriteHeader(http.StatusOK)
+	return
+}
+
+// GetEventList is a method to fetch the list of application event
+func (kostHandler *KostHandler) GetEventList(rw http.ResponseWriter, r *http.Request) {
+
+	// look for the current kost list in the db
+	var eventList []database.MasterEvent
+	if err := config.DB.Where("is_active = ?", true).Find(&eventList).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	fmt.Printf("%v", eventList)
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(eventList, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
 	return
 }

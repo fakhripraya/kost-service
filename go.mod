@@ -9,6 +9,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/hashicorp/go-hclog v0.15.0
 	github.com/joho/godotenv v1.3.0
+	github.com/kelvins/geocoder v0.0.0-20200113010004-f579500e9e27
 	github.com/spf13/viper v1.7.1
 	github.com/srinathgs/mysqlstore v0.0.0-20200417050510-9cbb9420fc4c
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect

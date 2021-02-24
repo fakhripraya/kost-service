@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/fakhripraya/kost-service/config"
 	"github.com/fakhripraya/kost-service/data"
@@ -122,7 +124,6 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 
 	// get the current logged in user additional info via context
 	userReq := r.Context().Value(KeyUser{}).(*entities.User)
-	kostHandler.logger.Info(userReq.Latitude)
 
 	baseURL, _ := url.Parse("http://api.positionstack.com")
 
@@ -155,15 +156,122 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 
 	// look for the current kost list in the db
 	var nearbyKostList []database.DBKost
-	if err := config.DB.Where("is_active = ?", true).Find(&nearbyKostList).Error; err != nil {
+	if err := config.DB.Limit(20).Where("is_active = ? AND city >= ?", true, geoLocation.GeoData[0].County).Find(&nearbyKostList).Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
 	}
 
+	type Ranges struct {
+		KostID   uint
+		Distance float64
+	}
+	type NearbyKostView struct {
+		ID             uint   `json:"id"`
+		KostName       string `json:"kost_name"`
+		City           string `json:"city"`
+		ThumbnailURL   string `json:"thumbnail_url"`
+		ThumbnailPrice string `json:"thumbnail_price"`
+	}
+
+	var listRanges []Ranges
+	var tempRanges []Ranges
+
+	for _, nearby := range nearbyKostList {
+
+		lat1, _ := strconv.ParseFloat(userReq.Latitude, 64)
+		lng1, _ := strconv.ParseFloat(userReq.Longitude, 64)
+		lat2, _ := strconv.ParseFloat(nearby.Latitude, 64)
+		lng2, _ := strconv.ParseFloat(nearby.Longitude, 64)
+
+		distance := kostHandler.kost.CalculateDistanceBetween(lat1, lng1, lat2, lng2, "K")
+		tempRanges = append(tempRanges, Ranges{
+			KostID:   nearby.ID,
+			Distance: distance,
+		})
+
+	}
+
+	for i := 0; i < 5; i++ {
+
+		var smallest float64 = -1
+		for _, obj := range tempRanges {
+
+			if smallest == -1 {
+				smallest = obj.Distance
+			} else {
+				if smallest > obj.Distance {
+					smallest = obj.Distance
+				}
+			}
+		}
+
+		var keepRanges []Ranges
+
+		for _, num := range tempRanges {
+
+			if num.Distance == smallest {
+				listRanges = append(listRanges, num)
+			} else {
+				keepRanges = append(keepRanges, num)
+			}
+		}
+
+		tempRanges = keepRanges
+	}
+
+	// variable to hold temporary data of nearby kost list
+	var tempNearbyKostList []NearbyKostView
+
+	for _, nearby := range listRanges {
+
+		var selectedKost database.DBKost
+		if err := config.DB.Where("id= ?", nearby.KostID).First(&selectedKost).Error; err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
+		var roomPrice struct {
+			RoomPrice    float64 `json:"room_price"`
+			RoomPriceUom uint    `json:"room_price_uom"`
+		}
+
+		if err := config.DB.Raw("SELECT room_price, room_price_uom FROM db_kost_rooms WHERE kost_id = ?", nearby.KostID).Scan(&roomPrice).Error; err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+		// if err := config.DB.Table("db_kost_rooms").Select("room_price", "room_price_uom").Where("kost_id = ?", nearby.KostID).Scan(&roomPrice).Error; err != nil {
+		// 	rw.WriteHeader(http.StatusBadRequest)
+		// 	data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		// 	return
+		// }
+
+		var uomDescription string
+		if err := config.DB.Raw("SELECT uom_desc FROM master_uoms WHERE id = ?", roomPrice.RoomPriceUom).Scan(&uomDescription).Error; err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
+		tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
+			ID:             nearby.KostID,
+			KostName:       selectedKost.KostName,
+			City:           selectedKost.City,
+			ThumbnailURL:   selectedKost.ThumbnailURL,
+			ThumbnailPrice: fmt.Sprintf("%f", roomPrice.RoomPrice) + " / " + uomDescription,
+		})
+
+	}
+
 	// parse the given instance to the response writer
-	err = data.ToJSON(nearbyKostList, rw)
+	err = data.ToJSON(tempNearbyKostList, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

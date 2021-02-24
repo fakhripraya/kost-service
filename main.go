@@ -108,6 +108,10 @@ func main() {
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
+	getRequest.HandleFunc("/my/near", Adapt(
+		http.HandlerFunc(kostHandler.GetNearYouList),
+		kostHandler.MiddlewareParseUserRequest,
+	).ServeHTTP)
 	getRequest.HandleFunc("/event/all", kostHandler.GetEventList)
 
 	// get global middleware

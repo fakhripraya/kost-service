@@ -17,9 +17,10 @@ type Kost struct {
 	Country       string                      `json:"country"`
 	City          string                      `json:"city"`
 	Address       string                      `json:"address"`
+	Latitude      string                      `json:"latitude"`
+	Longitude     string                      `json:"longitude"`
 	UpRate        uint64                      `json:"up_rate"`
 	UpRateExpired time.Time                   `json:"up_rate_expired"`
-	Rate          float64                     `json:"rate"`
 	Rooms         []KostRoom                  `json:"rooms"`
 	Facilities    []database.DBKostFacilities `json:"facilities"`
 	KostPeriods   []database.DBKostPeriod     `json:"kost_periods"`

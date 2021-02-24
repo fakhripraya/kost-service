@@ -65,6 +65,13 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 
 }
 
+// CalculateDistanceBetween will calculate the distance between two given point
+func (kost *Kost) CalculateDistanceBetween(rw http.ResponseWriter, r *http.Request, store *mysqlstore.MySQLStore) error {
+
+	return nil
+
+}
+
 // GenerateCode will generate the new given type code
 func (kost *Kost) GenerateCode(codeType, country, city string) (string, error) {
 

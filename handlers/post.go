@@ -46,6 +46,8 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		newKost.Country = kostReq.Country
 		newKost.City = kostReq.City
 		newKost.Address = kostReq.Address
+		newKost.Latitude = kostReq.Latitude
+		newKost.Longitude = kostReq.Longitude
 		newKost.UpRate = 0
 		newKost.UpRateExpired = time.Now().Local()
 		newKost.IsVerified = false

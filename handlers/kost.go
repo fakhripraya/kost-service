@@ -13,6 +13,9 @@ type KeyKost struct{}
 // KeyApproval is a key used for the Approval object in the context
 type KeyApproval struct{}
 
+// KeyUser is a key used for the User object in the context
+type KeyUser struct{}
+
 // KostHandler is a handler struct for kost changes
 type KostHandler struct {
 	logger hclog.Logger

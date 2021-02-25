@@ -57,7 +57,6 @@ func (kostHandler *KostHandler) GetMyKost(rw http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	rw.WriteHeader(http.StatusOK)
 	return
 }
 
@@ -74,7 +73,7 @@ func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Re
 	}
 
 	// look for the current kost list in the db
-	var kostList database.DBKost
+	var kostList []database.DBKost
 	if err := config.DB.Where("owner_id = ?", currentUser.ID).Find(&kostList).Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -91,7 +90,6 @@ func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Re
 		return
 	}
 
-	rw.WriteHeader(http.StatusOK)
 	return
 }
 
@@ -174,6 +172,9 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 		ThumbnailURL   string `json:"thumbnail_url"`
 		ThumbnailPrice string `json:"thumbnail_price"`
 	}
+	type FinalNearbyKostView struct {
+		CarouselList []NearbyKostView `json:"carousel_list"`
+	}
 
 	var listRanges []Ranges
 	var tempRanges []Ranges
@@ -223,6 +224,8 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 
 	// variable to hold temporary data of nearby kost list
 	var tempNearbyKostList []NearbyKostView
+	var finalNearbyKostList []FinalNearbyKostView
+	var i = 0
 
 	for _, nearby := range listRanges {
 
@@ -245,12 +248,6 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 
 			return
 		}
-		// if err := config.DB.Table("db_kost_rooms").Select("room_price", "room_price_uom").Where("kost_id = ?", nearby.KostID).Scan(&roomPrice).Error; err != nil {
-		// 	rw.WriteHeader(http.StatusBadRequest)
-		// 	data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		// 	return
-		// }
 
 		var uomDescription string
 		if err := config.DB.Raw("SELECT uom_desc FROM master_uoms WHERE id = ?", roomPrice.RoomPriceUom).Scan(&uomDescription).Error; err != nil {
@@ -260,18 +257,61 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 			return
 		}
 
-		tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
-			ID:             nearby.KostID,
-			KostName:       selectedKost.KostName,
-			City:           selectedKost.City,
-			ThumbnailURL:   selectedKost.ThumbnailURL,
-			ThumbnailPrice: fmt.Sprintf("%f", roomPrice.RoomPrice) + " / " + uomDescription,
-		})
+		if i < 3 {
+			tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
+				ID:             nearby.KostID,
+				KostName:       selectedKost.KostName,
+				City:           selectedKost.City,
+				ThumbnailURL:   selectedKost.ThumbnailURL,
+				ThumbnailPrice: fmt.Sprintf("%f", roomPrice.RoomPrice) + " / " + uomDescription,
+			})
+
+			i++
+		} else {
+			finalNearbyKostList = append(finalNearbyKostList, FinalNearbyKostView{
+				CarouselList: tempNearbyKostList,
+			})
+
+			var tempData = tempNearbyKostList[2]
+
+			tempNearbyKostList = nil
+			tempNearbyKostList = append(tempNearbyKostList, tempData)
+			tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
+				ID:             nearby.KostID,
+				KostName:       selectedKost.KostName,
+				City:           selectedKost.City,
+				ThumbnailURL:   selectedKost.ThumbnailURL,
+				ThumbnailPrice: fmt.Sprintf("%f", roomPrice.RoomPrice) + " / " + uomDescription,
+			})
+
+			i = 2
+		}
 
 	}
 
+	if len(tempNearbyKostList) > 0 {
+		finalNearbyKostList = append(finalNearbyKostList, FinalNearbyKostView{
+			CarouselList: tempNearbyKostList,
+		})
+	}
+
+	if len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList) == 3 {
+
+		var tempLastNearby []NearbyKostView
+		tempLastNearby = append(tempLastNearby, NearbyKostView{
+			ID:             finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].ID,
+			KostName:       finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].KostName,
+			City:           finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].City,
+			ThumbnailURL:   finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].ThumbnailURL,
+			ThumbnailPrice: finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].ThumbnailPrice,
+		})
+		finalNearbyKostList = append(finalNearbyKostList, FinalNearbyKostView{
+			CarouselList: tempLastNearby,
+		})
+	}
+
 	// parse the given instance to the response writer
-	err = data.ToJSON(tempNearbyKostList, rw)
+	err = data.ToJSON(finalNearbyKostList, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

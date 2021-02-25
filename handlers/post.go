@@ -48,6 +48,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		newKost.Address = kostReq.Address
 		newKost.Latitude = kostReq.Latitude
 		newKost.Longitude = kostReq.Longitude
+		newKost.ThumbnailURL = kostReq.Rooms[0].RoomPicts[0].URL
 		newKost.UpRate = 0
 		newKost.UpRateExpired = time.Now().Local()
 		newKost.IsVerified = false

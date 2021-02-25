@@ -158,19 +158,14 @@ func (kostHandler *KostHandler) MiddlewareParseApprovalRequest(next http.Handler
 func (kostHandler *KostHandler) MiddlewareParseUserRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
-		// validate content type to be application/json
-		rw.Header().Add("Content-Type", "application/json")
+		// get the user additional info from the header
+		latitude := r.FormValue("latitude")
+		longitude := r.FormValue("longitude")
 
 		// create the user instance
-		user := &entities.User{}
-
-		// parse the request body to the given instance
-		err := data.FromJSON(user, r.Body)
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-			return
+		user := &entities.User{
+			Latitude:  latitude,
+			Longitude: longitude,
 		}
 
 		// add the user to the context

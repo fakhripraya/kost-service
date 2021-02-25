@@ -108,7 +108,7 @@ func main() {
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
-	getRequest.Path("/my/near").Queries("latitude", "{latitude}", "longitude", "{longitude}").HandlerFunc(Adapt(
+	getRequest.HandleFunc("/my/near", Adapt(
 		http.HandlerFunc(kostHandler.GetNearYouList),
 		kostHandler.MiddlewareParseUserRequest,
 	).ServeHTTP)

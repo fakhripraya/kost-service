@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fakhripraya/kost-service/data"
 	"github.com/fakhripraya/kost-service/entities"
+	"github.com/gorilla/mux"
 )
 
 // MiddlewareValidateAuth validates the request and calls next if ok
@@ -98,8 +100,35 @@ func (kostHandler *KostHandler) MiddlewareValidateAuth(next http.Handler) http.H
 	})
 }
 
-// MiddlewareParseKostRequest parses the kost payload in the request body from json
-func (kostHandler *KostHandler) MiddlewareParseKostRequest(next http.Handler) http.Handler {
+// MiddlewareParseKostGetRequest parses the kost payload from the query parameter
+func (kostHandler *KostHandler) MiddlewareParseKostGetRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		id, err := strconv.ParseUint(vars["id"], 10, 32)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: "Unable to convert id"}, rw)
+
+			return
+		}
+
+		// create the kost instance
+		kost := &entities.Kost{
+			ID: uint(id),
+		}
+
+		// add the kost to the context
+		ctx := context.WithValue(r.Context(), KeyKost{}, kost)
+		r = r.WithContext(ctx)
+
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(rw, r)
+	})
+}
+
+// MiddlewareParseKostPostRequest parses the kost payload in the request body from json
+func (kostHandler *KostHandler) MiddlewareParseKostPostRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
 		// validate content type to be application/json

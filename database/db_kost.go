@@ -10,6 +10,7 @@ type DBKost struct {
 	Status        uint      `gorm:"not null" json:"status"`
 	KostCode      string    `gorm:"not null" json:"kost_code"`
 	KostName      string    `gorm:"not null" json:"kost_name"`
+	KostDesc      string    `gorm:"not null" json:"kost_desc"`
 	Country       string    `gorm:"not null" json:"country"`
 	City          string    `gorm:"not null" json:"city"`
 	Address       string    `gorm:"not null" json:"address"`

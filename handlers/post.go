@@ -43,6 +43,7 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 		}
 
 		newKost.KostName = kostReq.KostName
+		newKost.KostDesc = kostReq.KostDesc
 		newKost.Country = kostReq.Country
 		newKost.City = kostReq.City
 		newKost.Address = kostReq.Address

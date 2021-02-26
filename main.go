@@ -104,7 +104,18 @@ func main() {
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
 
 	// get kost handlers
-	getRequest.HandleFunc("/", kostHandler.GetKost)
+	getRequest.HandleFunc("/{id:[0-9]+}", Adapt(
+		http.HandlerFunc(kostHandler.GetKost),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
+	getRequest.HandleFunc("/{id:[0-9]+}/picts", Adapt(
+		http.HandlerFunc(kostHandler.GetKostPicts),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
+	getRequest.HandleFunc("/{id:[0-9]+}/facilities", Adapt(
+		http.HandlerFunc(kostHandler.GetKostFacilities),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
@@ -126,7 +137,7 @@ func main() {
 	// post global middleware
 	postRequest.Use(
 		kostHandler.MiddlewareValidateAuth,
-		kostHandler.MiddlewareParseKostRequest,
+		kostHandler.MiddlewareParseKostPostRequest,
 	)
 
 	// CORS

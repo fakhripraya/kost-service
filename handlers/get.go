@@ -16,7 +16,85 @@ import (
 // GetKost is a method to fetch the given kost info
 func (kostHandler *KostHandler) GetKost(rw http.ResponseWriter, r *http.Request) {
 
-	rw.WriteHeader(http.StatusOK)
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// look for the selected kost in the db to fetch all the picts
+	var selectedKost database.DBKost
+	if err := config.DB.Where("id = ?", kostReq.ID).First(&selectedKost).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(selectedKost, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostPicts is a method to fetch the given kost picts list
+func (kostHandler *KostHandler) GetKostPicts(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// look for the selected kost in the db to fetch all the picts
+	var kostPicts []database.DBKostPict
+	if err := config.DB.Where("kost_id = ?", kostReq.ID).Find(&kostPicts).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostPicts, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostFacilities is a method to fetch the given kost facilities list
+func (kostHandler *KostHandler) GetKostFacilities(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// look for the selected kost in the db to fetch all the picts
+	var kostfacilities []entities.KostFacilities
+	if err := config.DB.
+		Model(&database.DBKostFacilities{}).
+		Select("db_kost_facilities.id, db_kost_facilities.fac_id, db_kost_facilities.kost_id, master_facilities.fac_name as fac_desc").
+		Joins("inner join master_facilities on master_facilities.id = db_kost_facilities.fac_id").
+		Where("db_kost_facilities.kost_id = ? AND master_facilities.fac_category = ?", kostReq.ID, 0).Scan(&kostfacilities).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostfacilities, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
 	return
 }
 

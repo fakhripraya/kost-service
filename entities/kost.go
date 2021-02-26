@@ -14,6 +14,7 @@ type Kost struct {
 	Status        uint                        `json:"status"`
 	KostCode      string                      `json:"kost_code"`
 	KostName      string                      `json:"kost_name"`
+	KostDesc      string                      `json:"kost_desc"`
 	Country       string                      `json:"country"`
 	City          string                      `json:"city"`
 	Address       string                      `json:"address"`
@@ -109,6 +110,7 @@ type KostFacilities struct {
 	ID         uint      `json:"id"`
 	FacID      uint      `json:"fac_id"`
 	KostID     uint      `json:"kost_id"`
+	FacDesc    string    `json:"fac_desc"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`

@@ -116,6 +116,18 @@ func main() {
 		http.HandlerFunc(kostHandler.GetKostFacilities),
 		kostHandler.MiddlewareParseKostGetRequest,
 	).ServeHTTP)
+	getRequest.HandleFunc("/{id:[0-9]+}/benchmark", Adapt(
+		http.HandlerFunc(kostHandler.GetKostBenchmark),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
+	getRequest.HandleFunc("/{id:[0-9]+}/access", Adapt(
+		http.HandlerFunc(kostHandler.GetKostAccessibility),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
+	getRequest.HandleFunc("/{id:[0-9]+}/around", Adapt(
+		http.HandlerFunc(kostHandler.GetKostAround),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)

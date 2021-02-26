@@ -73,7 +73,7 @@ func (kostHandler *KostHandler) GetKostFacilities(rw http.ResponseWriter, r *htt
 	// get the kost via context
 	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
 
-	// look for the selected kost in the db to fetch all the picts
+	// look for the selected kost in the db to fetch all the facilities
 	var kostfacilities []entities.KostFacilities
 	if err := config.DB.
 		Model(&database.DBKostFacilities{}).
@@ -88,6 +88,87 @@ func (kostHandler *KostHandler) GetKostFacilities(rw http.ResponseWriter, r *htt
 
 	// parse the given instance to the response writer
 	err := data.ToJSON(kostfacilities, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostBenchmark is a method to fetch the given kost benchmark list
+func (kostHandler *KostHandler) GetKostBenchmark(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// look for the selected kost in the db to fetch all the benchmark
+	var kostBenchmark []database.DBKostBenchmark
+	if err := config.DB.Where("kost_id = ?", kostReq.ID).Find(&kostBenchmark).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostBenchmark, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostAccessibility is a method to fetch the given kost accessibility list
+func (kostHandler *KostHandler) GetKostAccessibility(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// look for the selected kost in the db to fetch all the accessibility
+	var kostAccess []database.DBKostAccess
+	if err := config.DB.Where("kost_id = ?", kostReq.ID).Find(&kostAccess).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostAccess, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostAround is a method to fetch the given kost around list
+func (kostHandler *KostHandler) GetKostAround(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// look for the selected kost in the db to fetch all the around landmark
+	var kostAround []database.DBKostAround
+	if err := config.DB.Where("kost_id = ?", kostReq.ID).Find(&kostAround).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostAround, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

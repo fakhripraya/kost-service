@@ -125,6 +125,99 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 			return dbErr
 		}
 
+		// proceed to create the new kost benchmark with transaction scope
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
+			var kostBenchmark = kostReq.KostBenchmark
+
+			// add the kost id to the slices
+			for i := range kostBenchmark {
+				(&kostBenchmark[i]).KostID = newKost.ID
+				(&kostBenchmark[i]).IsActive = true
+				(&kostBenchmark[i]).Created = time.Now().Local()
+				(&kostBenchmark[i]).CreatedBy = currentUser.Username
+				(&kostBenchmark[i]).Modified = time.Now().Local()
+				(&kostBenchmark[i]).ModifiedBy = currentUser.Username
+			}
+
+			// insert the new kost picts to database
+			if dbErr2 = tx2.Create(&kostBenchmark).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
+		// if transaction error, return the error
+		if dbErr != nil {
+			return dbErr
+		}
+
+		// proceed to create the new kost accessibility with transaction scope
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
+			var kostAccess = kostReq.KostAccess
+
+			// add the kost id to the slices
+			for i := range kostAccess {
+				(&kostAccess[i]).KostID = newKost.ID
+				(&kostAccess[i]).IsActive = true
+				(&kostAccess[i]).Created = time.Now().Local()
+				(&kostAccess[i]).CreatedBy = currentUser.Username
+				(&kostAccess[i]).Modified = time.Now().Local()
+				(&kostAccess[i]).ModifiedBy = currentUser.Username
+			}
+
+			// insert the new kost picts to database
+			if dbErr2 = tx2.Create(&kostAccess).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
+		// if transaction error, return the error
+		if dbErr != nil {
+			return dbErr
+		}
+
+		// proceed to create the new around kost with transaction scope
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
+			var kostAround = kostReq.KostAround
+
+			// add the kost id to the slices
+			for i := range kostAround {
+				(&kostAround[i]).KostID = newKost.ID
+				(&kostAround[i]).IsActive = true
+				(&kostAround[i]).Created = time.Now().Local()
+				(&kostAround[i]).CreatedBy = currentUser.Username
+				(&kostAround[i]).Modified = time.Now().Local()
+				(&kostAround[i]).ModifiedBy = currentUser.Username
+			}
+
+			// insert the new kost picts to database
+			if dbErr2 = tx2.Create(&kostAround).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
+		// if transaction error, return the error
+		if dbErr != nil {
+			return dbErr
+		}
+
 		// loop the room slices
 		for _, room := range kostReq.Rooms {
 

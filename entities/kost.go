@@ -26,6 +26,9 @@ type Kost struct {
 	Facilities    []database.DBKostFacilities `json:"facilities"`
 	KostPeriods   []database.DBKostPeriod     `json:"kost_periods"`
 	KostPicts     []database.DBKostPict       `json:"kost_picts"`
+	KostBenchmark []database.DBKostBenchmark  `json:"kost_benchmark"`
+	KostAccess    []database.DBKostAccess     `json:"kost_access"`
+	KostAround    []database.DBKostAround     `json:"kost_around"`
 	IsVerified    bool                        `json:"is_verified"`
 	ThumbnailURL  string                      `json:"thumbnail_url"`
 	IsActive      bool                        `json:"is_active"`

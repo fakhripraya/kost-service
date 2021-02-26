@@ -123,6 +123,43 @@ type DBKostReview struct {
 	ModifiedBy  string    `json:"modified_by"`
 }
 
+// DBKostBenchmark will migrate a kost benchmark table with the given specification into the database
+type DBKostBenchmark struct {
+	ID            uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID        uint      `gorm:"not null" json:"kost_id"`
+	BenchmarkDesc string    `gorm:"not null" json:"benchmark_desc"`
+	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
+	Created       time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy     string    `json:"created_by"`
+	Modified      time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy    string    `json:"modified_by"`
+}
+
+// DBKostAccess will migrate a kost accessibility table with the given specification into the database
+type DBKostAccess struct {
+	ID                uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID            uint      `gorm:"not null" json:"kost_id"`
+	AccessibilityDesc string    `gorm:"not null" json:"accessibility_desc"`
+	IsActive          bool      `gorm:"not null;default:true" json:"is_active"`
+	Created           time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy         string    `json:"created_by"`
+	Modified          time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy        string    `json:"modified_by"`
+}
+
+// DBKostAround will migrate a kost around table with the given specification into the database
+type DBKostAround struct {
+	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID     uint      `gorm:"not null" json:"kost_id"`
+	IconID     uint      `gorm:"not null" json:"icon_id"`
+	AroundDesc string    `gorm:"not null" json:"around_desc"`
+	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
+	Created    time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
+}
+
 // KostTable set the migrated struct table name
 func (dbKost *DBKost) KostTable() string {
 	return "dbKost"
@@ -161,4 +198,19 @@ func (dbKostFacilities *DBKostFacilities) KostFacilitiesTable() string {
 // KostReviewTable set the migrated struct table name
 func (dbKostReview *DBKostReview) KostReviewTable() string {
 	return "dbKostReview"
+}
+
+// KostBenchmarkTable set the migrated struct table name
+func (dbKostBenchmark *DBKostBenchmark) KostBenchmarkTable() string {
+	return "dbKostBenchmark"
+}
+
+// KostAccessTable set the migrated struct table name
+func (dbKostAccess *DBKostAccess) KostAccessTable() string {
+	return "dbKostAccess"
+}
+
+// KostAroundTable set the migrated struct table name
+func (dbKostAround *DBKostAround) KostAroundTable() string {
+	return "dbKostAround"
 }

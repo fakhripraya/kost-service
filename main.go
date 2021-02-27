@@ -102,47 +102,70 @@ func main() {
 
 	// get handlers
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
+	getKostRequest := serveMux.Methods(http.MethodGet).Subrouter()
+
+	// // get kost handlers
+	// getRequest.HandleFunc("/{id:[0-9]+}", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKost),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/picts", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostPicts),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/facilities", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostFacilities),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/benchmark", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostBenchmark),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/access", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostAccessibility),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/around", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostAround),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/review", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostReviewList),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/rooms", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostRooms),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+	// getRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}", Adapt(
+	// 	http.HandlerFunc(kostHandler.GetKostRoomPicts),
+	// 	kostHandler.MiddlewareParseKostGetRequest,
+	// ).ServeHTTP)
+
+	// get specific kost handlers
+	getKostRequest.HandleFunc("/{id:[0-9]+}", kostHandler.GetKost)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/picts", kostHandler.GetKostPicts)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/facilities", kostHandler.GetKostFacilities)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/benchmark", kostHandler.GetKostBenchmark)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/access", kostHandler.GetKostAccessibility)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/around", kostHandler.GetKostAround)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/review", kostHandler.GetKostReviewList)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms", kostHandler.GetKostRoomList)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomList)
 
 	// get kost handlers
-	getRequest.HandleFunc("/{id:[0-9]+}", Adapt(
-		http.HandlerFunc(kostHandler.GetKost),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
-	getRequest.HandleFunc("/{id:[0-9]+}/picts", Adapt(
-		http.HandlerFunc(kostHandler.GetKostPicts),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
-	getRequest.HandleFunc("/{id:[0-9]+}/facilities", Adapt(
-		http.HandlerFunc(kostHandler.GetKostFacilities),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
-	getRequest.HandleFunc("/{id:[0-9]+}/benchmark", Adapt(
-		http.HandlerFunc(kostHandler.GetKostBenchmark),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
-	getRequest.HandleFunc("/{id:[0-9]+}/access", Adapt(
-		http.HandlerFunc(kostHandler.GetKostAccessibility),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
-	getRequest.HandleFunc("/{id:[0-9]+}/around", Adapt(
-		http.HandlerFunc(kostHandler.GetKostAround),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
-	getRequest.HandleFunc("/{id:[0-9]+}/review", Adapt(
-		http.HandlerFunc(kostHandler.GetKostReviewList),
-		kostHandler.MiddlewareParseKostGetRequest,
-	).ServeHTTP)
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
+	getRequest.HandleFunc("/event/all", kostHandler.GetEventList)
 	getRequest.HandleFunc("/my/near", Adapt(
 		http.HandlerFunc(kostHandler.GetNearYouList),
 		kostHandler.MiddlewareParseUserRequest,
 	).ServeHTTP)
-	getRequest.HandleFunc("/event/all", kostHandler.GetEventList)
 
 	// get global middleware
 	getRequest.Use(kostHandler.MiddlewareValidateAuth)
+	getKostRequest.Use(kostHandler.MiddlewareParseKostGetRequest)
 
 	// post handlers
 	postRequest := serveMux.Methods(http.MethodPost).Subrouter()

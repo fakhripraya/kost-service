@@ -160,7 +160,9 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 		}
 
 		newKostRoom.RoomPriceUOM = targetKostRoom.RoomPriceUOM
-		newKostRoom.RoomArea = targetKostRoom.RoomArea
+		newKostRoom.RoomLength = targetKostRoom.RoomLength
+		newKostRoom.RoomWidth = targetKostRoom.RoomWidth
+		newKostRoom.RoomArea = targetKostRoom.RoomLength * targetKostRoom.RoomWidth
 
 		// look for the requested uom from the database
 		if dbErr = config.DB.Where("id = ?", targetKostRoom.RoomAreaUOM).First(&targetAreaUOM).Error; dbErr != nil {

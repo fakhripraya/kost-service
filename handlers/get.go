@@ -11,6 +11,7 @@ import (
 	"github.com/fakhripraya/kost-service/data"
 	"github.com/fakhripraya/kost-service/database"
 	"github.com/fakhripraya/kost-service/entities"
+	"github.com/gorilla/mux"
 )
 
 // GetKost is a method to fetch the given kost info
@@ -199,6 +200,87 @@ func (kostHandler *KostHandler) GetKostReviewList(rw http.ResponseWriter, r *htt
 
 	// parse the given instance to the response writer
 	err := data.ToJSON(kostReview, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostRoomList is a method to fetch the given kost room list
+func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	var kostRoom []entities.KostRoom
+	if err := config.DB.
+		Model(&database.DBKostRoom{}).
+		Select("db_kost_rooms.id, db_kost_rooms.kost_id,db_kost_rooms.room_desc,db_kost_rooms.room_price"+
+			",db_kost_rooms.room_price_uom,db_kost_rooms.room_area,db_kost_rooms.room_area_uom,db_kost_rooms.max_person"+
+			"db_kost_rooms.floor_level,master_uoms.uom_desc").
+		Joins("inner join master_uoms on master_uoms.id = db_kost_rooms.room_area_uom").
+		Where("db_kost_rooms.kost_id = ? AND master_uoms.uom_type = ?", kostReq.ID, "length").Scan(&kostRoom).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostRoom, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostDetailList is a method to fetch the given kost room detail list
+func (kostHandler *KostHandler) GetKostDetailList(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via mux
+	vars := mux.Vars(r)
+	roomID, err := strconv.ParseUint(vars["roomId"], 10, 32)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: "Unable to convert id"}, rw)
+
+		return
+	}
+
+	var kostRoomDetails []database.DBKostRoomDetail
+	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomDetails).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	var kostRoomPicts []database.DBKostRoomPict
+	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomPicts).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	kostDetailView := struct {
+		RoomPicts   []database.DBKostRoomPict   `json:"room_picts"`
+		RoomDetails []database.DBKostRoomDetail `json:"room_details"`
+	}{
+		RoomPicts:   kostRoomPicts,
+		RoomDetails: kostRoomDetails,
+	}
+
+	// parse the given instance to the response writer
+	err = data.ToJSON(kostDetailView, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

@@ -179,6 +179,36 @@ func (kostHandler *KostHandler) GetKostAround(rw http.ResponseWriter, r *http.Re
 	return
 }
 
+// GetKostReviewList is a method to fetch the given kost review list
+func (kostHandler *KostHandler) GetKostReviewList(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	var kostReview []entities.KostReview
+	if err := config.DB.
+		Model(&database.DBKostReview{}).
+		Select("db_kost_reviews.id, db_kost_reviews.cleanliness,db_kost_reviews.convenience,db_kost_reviews.security,db_kost_reviews.facilities,db_kost_reviews.comments,master_users.display_name, master_users.profile_picture").
+		Joins("inner join master_users on master_users.id = db_kost_reviews.user_id").
+		Where("db_kost_reviews.kost_id = ?", kostReq.ID, 0).Scan(&kostReview).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostReview, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
 // GetKostList is a method to fetch the given kost info
 func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Request) {
 

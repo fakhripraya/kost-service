@@ -128,6 +128,10 @@ func main() {
 		http.HandlerFunc(kostHandler.GetKostAround),
 		kostHandler.MiddlewareParseKostGetRequest,
 	).ServeHTTP)
+	getRequest.HandleFunc("/{id:[0-9]+}/review", Adapt(
+		http.HandlerFunc(kostHandler.GetKostReviewList),
+		kostHandler.MiddlewareParseKostGetRequest,
+	).ServeHTTP)
 	getRequest.HandleFunc("/all", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)

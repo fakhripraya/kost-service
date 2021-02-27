@@ -121,6 +121,25 @@ type KostFacilities struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
+// KostReview is an entity to communicate with the kost review client side
+type KostReview struct {
+	ID             uint      `json:"id"`
+	KostID         uint      `json:"owner_id"`
+	UserID         uint      `json:"user_id"`
+	DisplayName    string    `json:"display_name"`
+	ProfilePicture string    `json:"profile_picture"`
+	Cleanliness    float64   `json:"cleanliness"`
+	Convenience    float64   `json:"convenience"`
+	Security       float64   `json:"security"`
+	Facilities     float64   `json:"facilities"`
+	Comments       string    `json:"comments"`
+	IsActive       bool      `json:"is_active"`
+	Created        time.Time `json:"created"`
+	CreatedBy      string    `json:"created_by"`
+	Modified       time.Time `json:"modified"`
+	ModifiedBy     string    `json:"modified_by"`
+}
+
 // MasterKostType is an entity to communicate with the master kost type client side
 type MasterKostType struct {
 	ID         uint      `json:"id"`

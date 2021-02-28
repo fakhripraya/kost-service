@@ -6,6 +6,8 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"time"
 
@@ -63,6 +65,40 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 	}
 
 	return &currentUser, nil
+
+}
+
+// GetReverseGeocoderResult will get the result of reverse geocoder calculation based on the given latitude and longitude
+func (kost *Kost) GetReverseGeocoderResult(latitude string, longitude string) (*entities.Geolocation, error) {
+
+	baseURL, _ := url.Parse("http://api.positionstack.com")
+
+	baseURL.Path += "v1/reverse"
+
+	params := url.Values{}
+
+	// Access Key
+	params.Add("access_key", os.Getenv("GEOCODER_API_KEY"))
+
+	// Query = latitude,longitude
+	params.Add("query", latitude+","+longitude)
+
+	// trigger the reverse geocoder request to fetch the addresses data
+	baseURL.RawQuery = params.Encode()
+	req, _ := http.NewRequest("GET", baseURL.String(), nil)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	// create the geo location instance
+	geoLocation := &entities.Geolocation{}
+	FromJSON(geoLocation, res.Body)
+
+	return geoLocation, nil
 
 }
 
@@ -303,8 +339,64 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 	return nil
 }
 
-// UpdateKost is a function to update the given kost model
-func (kost *Kost) UpdateKost(targetKost *entities.Kost) error {
+// GetKostByOwner is a function to get kost by owner id
+func (kost *Kost) GetKostByOwner(ownerID uint) (*database.DBKost, error) {
 
-	return nil
+	// look for the current kost list in the db
+	myKost := &database.DBKost{}
+	if err := config.DB.Where("owner_id = ?", ownerID).First(myKost).Error; err != nil {
+
+		return nil, err
+	}
+
+	return myKost, nil
+}
+
+// GetKostListByOwner is a function to get kost list by owner id
+func (kost *Kost) GetKostListByOwner(ownerID uint) ([]database.DBKost, error) {
+
+	// look for the current kost list in the db
+	var kostList []database.DBKost
+	if err := config.DB.Where("owner_id = ?", ownerID).Find(&kostList).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostList, nil
+}
+
+// GetKostRoomDetails is a function to get kost room details based on the given room id
+func (kost *Kost) GetKostRoomDetails(roomID uint) ([]database.DBKostRoomDetail, error) {
+
+	var kostRoomDetails []database.DBKostRoomDetail
+	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomDetails).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostRoomDetails, nil
+}
+
+// GetKostRoomPicts is a function to get kost room picts based on the given room id
+func (kost *Kost) GetKostRoomPicts(roomID uint) ([]database.DBKostRoomPict, error) {
+
+	var kostRoomPicts []database.DBKostRoomPict
+	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomPicts).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostRoomPicts, nil
+}
+
+// GetKostRoomBookedList is a function to get kost booked room list based on the given room id
+func (kost *Kost) GetKostRoomBookedList(roomID uint) ([]database.DBTransactionRoomBook, error) {
+
+	var kostRoomBookedList []database.DBTransactionRoomBook
+	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomBookedList).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostRoomBookedList, nil
 }

@@ -3,8 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"net/url"
-	"os"
 	"strconv"
 
 	"github.com/fakhripraya/kost-service/config"
@@ -210,6 +208,71 @@ func (kostHandler *KostHandler) GetKostReviewList(rw http.ResponseWriter, r *htt
 	return
 }
 
+// GetKostOwner is a method to fetch the given kost owner
+func (kostHandler *KostHandler) GetKostOwner(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	// make a custom model
+	type KostOwner struct {
+		ID             uint   `json:"id"`
+		DisplayName    string `json:"display_name"`
+		ProfilePicture string `json:"profile_picture"`
+		City           string `json:"city"`
+	}
+
+	// look for the selected kost in the db to fetch the owner info aswell
+	var kostOwner KostOwner
+	if err := config.DB.
+		Model(&database.DBKost{}).
+		Select("db_kosts.owner_id as id"+
+			",master_users.display_name"+
+			",master_users.profile_picture"+
+			",master_users.city").
+		Joins("inner join master_users on master_users.id = db_kosts.owner_id").
+		Where("db_kosts.id = ?", kostReq.ID).Scan(&kostOwner).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// look for the selected owner kost list in the db
+	kostList, err := kostHandler.kost.GetKostListByOwner(kostOwner.ID)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	finalKostAround := struct {
+		ID             uint              `json:"id"`
+		DisplayName    string            `json:"display_name"`
+		ProfilePicture string            `json:"profile_picture"`
+		City           string            `json:"city"`
+		KostList       []database.DBKost `json:"kost_list"`
+	}{
+		ID:             kostOwner.ID,
+		DisplayName:    kostOwner.DisplayName,
+		ProfilePicture: kostOwner.ProfilePicture,
+		City:           kostOwner.City,
+		KostList:       kostList,
+	}
+
+	// parse the given instance to the response writer
+	err = data.ToJSON(finalKostAround, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
 // GetKostRoomList is a method to fetch the given kost room list
 func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.Request) {
 
@@ -217,13 +280,26 @@ func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.
 	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
 
 	var kostRoom []entities.KostRoom
+
 	if err := config.DB.
 		Model(&database.DBKostRoom{}).
-		Select("db_kost_rooms.id, db_kost_rooms.kost_id,db_kost_rooms.room_desc,db_kost_rooms.room_price"+
-			",db_kost_rooms.room_price_uom,db_kost_rooms.room_area,db_kost_rooms.room_area_uom,db_kost_rooms.max_person"+
-			"db_kost_rooms.floor_level,master_uoms.uom_desc").
-		Joins("inner join master_uoms on master_uoms.id = db_kost_rooms.room_area_uom").
-		Where("db_kost_rooms.kost_id = ? AND master_uoms.uom_type = ?", kostReq.ID, "length").Scan(&kostRoom).Error; err != nil {
+		Select("db_kost_rooms.id"+
+			",db_kost_rooms.kost_id "+
+			",db_kost_rooms.room_desc"+
+			",db_kost_rooms.room_price"+
+			",db_kost_rooms.room_price_uom"+
+			",price.uom_desc as room_price_uom_desc"+
+			",db_kost_rooms.room_length"+
+			",db_kost_rooms.room_width"+
+			",db_kost_rooms.room_area"+
+			",db_kost_rooms.room_area_uom"+
+			",area.uom_desc as room_area_uom_desc"+
+			",db_kost_rooms.max_person"+
+			",db_kost_rooms.floor_level"+
+			",db_kost_rooms.is_active").
+		Joins("inner join master_uoms as area on area.id = db_kost_rooms.room_area_uom").
+		Joins("inner join master_uoms as price on price.id = db_kost_rooms.room_price_uom").
+		Where("db_kost_rooms.kost_id = ? AND (area.uom_type = ? AND price.uom_type = ?)", kostReq.ID, "length", "currency").Scan(&kostRoom).Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -242,8 +318,8 @@ func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.
 	return
 }
 
-// GetKostDetailList is a method to fetch the given kost room detail list
-func (kostHandler *KostHandler) GetKostDetailList(rw http.ResponseWriter, r *http.Request) {
+// GetKostRoomInfo is a method to fetch the given kost room detail list
+func (kostHandler *KostHandler) GetKostRoomInfo(rw http.ResponseWriter, r *http.Request) {
 
 	// get the kost via mux
 	vars := mux.Vars(r)
@@ -255,28 +331,47 @@ func (kostHandler *KostHandler) GetKostDetailList(rw http.ResponseWriter, r *htt
 		return
 	}
 
-	var kostRoomDetails []database.DBKostRoomDetail
-	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomDetails).Error; err != nil {
+	kostRoomDetails, err := kostHandler.kost.GetKostRoomDetails(uint(roomID))
+	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
 	}
 
-	var kostRoomPicts []database.DBKostRoomPict
-	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomPicts).Error; err != nil {
+	kostRoomPicts, err := kostHandler.kost.GetKostRoomPicts(uint(roomID))
+	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
+	}
+
+	kostRoomBookedList, err := kostHandler.kost.GetKostRoomBookedList(uint(roomID))
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	var finalKostRoomBookedList []database.DBTransactionRoomBook
+	for _, validBooked := range kostRoomBookedList {
+
+		if validBooked.Status == 2 {
+			finalKostRoomBookedList = append(finalKostRoomBookedList, validBooked)
+		}
+
 	}
 
 	kostDetailView := struct {
-		RoomPicts   []database.DBKostRoomPict   `json:"room_picts"`
-		RoomDetails []database.DBKostRoomDetail `json:"room_details"`
+		RoomPicts   []database.DBKostRoomPict        `json:"room_picts"`
+		RoomDetails []database.DBKostRoomDetail      `json:"room_details"`
+		RoomBooked  []database.DBTransactionRoomBook `json:"room_booked"`
 	}{
 		RoomPicts:   kostRoomPicts,
 		RoomDetails: kostRoomDetails,
+		RoomBooked:  finalKostRoomBookedList,
 	}
 
 	// parse the given instance to the response writer
@@ -311,8 +406,8 @@ func (kostHandler *KostHandler) GetMyKost(rw http.ResponseWriter, r *http.Reques
 	}
 
 	// look for the current kost in the db
-	var myKost database.DBKost
-	if err := config.DB.Where("owner_id = ?", currentUser.ID).First(&myKost).Error; err != nil {
+	myKost, err := kostHandler.kost.GetKostByOwner(currentUser.ID)
+	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -344,8 +439,8 @@ func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Re
 	}
 
 	// look for the current kost list in the db
-	var kostList []database.DBKost
-	if err := config.DB.Where("owner_id = ?", currentUser.ID).Find(&kostList).Error; err != nil {
+	kostList, err := kostHandler.kost.GetKostListByOwner(currentUser.ID)
+	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -394,34 +489,13 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 	// get the current logged in user additional info via context
 	userReq := r.Context().Value(KeyUser{}).(*entities.User)
 
-	baseURL, _ := url.Parse("http://api.positionstack.com")
-
-	baseURL.Path += "v1/reverse"
-
-	params := url.Values{}
-
-	// Access Key
-	params.Add("access_key", os.Getenv("GEOCODER_API_KEY"))
-
-	// Query = latitude,longitude
-	params.Add("query", userReq.Latitude+","+userReq.Longitude)
-
-	// trigger the reverse geocoder request to fetch the addresses data
-	baseURL.RawQuery = params.Encode()
-	req, _ := http.NewRequest("GET", baseURL.String(), nil)
-	res, err := http.DefaultClient.Do(req)
+	geoLocation, err := kostHandler.kost.GetReverseGeocoderResult(userReq.Latitude, userReq.Longitude)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
 	}
-
-	defer res.Body.Close()
-
-	// create the geo location instance
-	geoLocation := &entities.Geolocation{}
-	data.FromJSON(geoLocation, res.Body)
 
 	// look for the current kost list in the db
 	var nearbyKostList []database.DBKost

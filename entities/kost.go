@@ -78,6 +78,8 @@ type KostRoom struct {
 	RoomAreaUOMDesc  string                      `json:"room_area_uom_desc"`
 	MaxPerson        uint                        `json:"max_person"`
 	FloorLevel       uint                        `json:"floor_level"`
+	AllowedGender    string                      `json:"allowed_gender"`
+	Comments         string                      `json:"comments"`
 	RoomPicts        []database.DBKostRoomPict   `gorm:"-" json:"room_picts"`
 	RoomDetails      []database.DBKostRoomDetail `gorm:"-" json:"room_details"`
 	IsActive         bool                        `json:"is_active"`
@@ -114,15 +116,30 @@ type KostRoomPict struct {
 
 // KostFacilities is an entity to communicate with the kost facilities client side
 type KostFacilities struct {
-	ID         uint      `json:"id"`
-	FacID      uint      `json:"fac_id"`
-	KostID     uint      `json:"kost_id"`
-	FacDesc    string    `json:"fac_desc"`
-	IsActive   bool      `json:"is_active"`
-	Created    time.Time `json:"created"`
-	CreatedBy  string    `json:"created_by"`
-	Modified   time.Time `json:"modified"`
-	ModifiedBy string    `json:"modified_by"`
+	ID          uint      `json:"id"`
+	FacID       uint      `json:"fac_id"`
+	KostID      uint      `json:"kost_id"`
+	FacCategory uint      `json:"fac_category"`
+	FacDesc     string    `json:"fac_desc"`
+	IsActive    bool      `json:"is_active"`
+	Created     time.Time `json:"created"`
+	CreatedBy   string    `json:"created_by"`
+	Modified    time.Time `json:"modified"`
+	ModifiedBy  string    `json:"modified_by"`
+}
+
+// KostRoomFacilities is an entity to communicate with the kost room client side
+type KostRoomFacilities struct {
+	ID          uint      `json:"id"`
+	FacID       uint      `json:"fac_id"`
+	RoomID      uint      `json:"room_id"`
+	FacCategory uint      `json:"fac_category"`
+	FacDesc     string    `json:"fac_desc"`
+	IsActive    bool      `json:"is_active"`
+	Created     time.Time `json:"created"`
+	CreatedBy   string    `json:"created_by"`
+	Modified    time.Time `json:"modified"`
+	ModifiedBy  string    `json:"modified_by"`
 }
 
 // KostReview is an entity to communicate with the kost review client side

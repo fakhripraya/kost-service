@@ -10,6 +10,7 @@ import (
 	"github.com/fakhripraya/kost-service/database"
 	"github.com/fakhripraya/kost-service/entities"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 // GetKost is a method to fetch the given kost info
@@ -69,16 +70,62 @@ func (kostHandler *KostHandler) GetKostPicts(rw http.ResponseWriter, r *http.Req
 // GetKostFacilities is a method to fetch the given kost facilities list
 func (kostHandler *KostHandler) GetKostFacilities(rw http.ResponseWriter, r *http.Request) {
 
+	var err error
+
 	// get the kost via context
 	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
 
-	// look for the selected kost in the db to fetch all the facilities
-	var kostfacilities []entities.KostFacilities
-	if err := config.DB.
-		Model(&database.DBKostFacilities{}).
-		Select("db_kost_facilities.id, db_kost_facilities.fac_id, db_kost_facilities.kost_id, master_facilities.fac_name as fac_desc").
-		Joins("inner join master_facilities on master_facilities.id = db_kost_facilities.fac_id").
-		Where("db_kost_facilities.kost_id = ? AND master_facilities.fac_category = ?", kostReq.ID, 0).Scan(&kostfacilities).Error; err != nil {
+	// get the additional field
+	vars := mux.Vars(r)
+	var facTableName string
+	var facTableKey string
+
+	var id uint
+	var model *gorm.DB
+	var kostFacilities []entities.KostFacilities
+	var kostRoomFacilities []entities.KostRoomFacilities
+
+	// filter whether id empty or not
+	if vars["roomId"] != "" {
+
+		facTableKey = "room_id"
+		facTableName = "db_kost_room_facilities"
+		model = config.DB.Model(&database.DBKostRoomFacilities{})
+
+		roomID, err := strconv.ParseUint(vars["roomId"], 10, 32)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: "Unable to convert id"}, rw)
+
+			return
+		}
+
+		id = uint(roomID)
+
+	} else {
+
+		id = kostReq.ID
+		facTableKey = "kost_id"
+		facTableName = "db_kost_facilities"
+		model = config.DB.Model(&database.DBKostFacilities{})
+
+	}
+
+	// if id is not empty
+	// query will execute a select sql statement towards db_kost_room_facilities
+	// if not it will go towards db_kost_facilities instead
+	finalQuery := model.
+		Select(facTableName+".id,"+facTableName+".fac_id,"+facTableName+"."+facTableKey+",master_facilities.fac_category as fac_category, master_facilities.fac_name as fac_desc").
+		Joins("inner join master_facilities on master_facilities.id = "+facTableName+".fac_id").
+		Where(facTableName+"."+facTableKey+" = ?", id)
+
+	if vars["roomId"] != "" {
+		finalQuery = finalQuery.Scan(&kostRoomFacilities)
+	} else {
+		finalQuery = finalQuery.Scan(&kostFacilities)
+	}
+
+	if err := finalQuery.Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -86,7 +133,12 @@ func (kostHandler *KostHandler) GetKostFacilities(rw http.ResponseWriter, r *htt
 	}
 
 	// parse the given instance to the response writer
-	err := data.ToJSON(kostfacilities, rw)
+	if vars["roomId"] != "" {
+		err = data.ToJSON(kostRoomFacilities, rw)
+	} else {
+		err = data.ToJSON(kostFacilities, rw)
+	}
+
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -296,6 +348,8 @@ func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.
 			",area.uom_desc as room_area_uom_desc"+
 			",db_kost_rooms.max_person"+
 			",db_kost_rooms.floor_level"+
+			",db_kost_rooms.allowed_gender"+
+			",db_kost_rooms.comments"+
 			",db_kost_rooms.is_active").
 		Joins("inner join master_uoms as area on area.id = db_kost_rooms.room_area_uom").
 		Joins("inner join master_uoms as price on price.id = db_kost_rooms.room_price_uom").

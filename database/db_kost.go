@@ -52,51 +52,6 @@ type DBKostPict struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// DBKostRoom will migrate a kost room table with the given specification into the database
-type DBKostRoom struct {
-	ID           uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
-	KostID       uint      `gorm:"not null" json:"kost_id"`
-	RoomDesc     string    `gorm:"not null" json:"room_desc"`
-	RoomPrice    float64   `gorm:"not null" json:"room_price"`
-	RoomPriceUOM uint      `gorm:"not null" json:"room_price_uom"`
-	RoomLength   float64   `gorm:"not null" json:"room_length"`
-	RoomWidth    float64   `gorm:"not null" json:"room_width"`
-	RoomArea     float64   `gorm:"not null" json:"room_area"`
-	RoomAreaUOM  uint      `gorm:"not null" json:"room_area_uom"`
-	MaxPerson    uint      `gorm:"not null" json:"max_person"`
-	FloorLevel   uint      `gorm:"not null" json:"floor_level"`
-	IsActive     bool      `gorm:"not null;default:true" json:"is_active"`
-	Created      time.Time `gorm:"type:datetime" json:"created"`
-	CreatedBy    string    `json:"created_by"`
-	Modified     time.Time `gorm:"type:datetime" json:"modified"`
-	ModifiedBy   string    `json:"modified_by"`
-}
-
-// DBKostRoomDetail will migrate a kost room table with the given specification into the database
-type DBKostRoomDetail struct {
-	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
-	RoomID     uint      `gorm:"not null" json:"room_id"`
-	RoomNumber string    `gorm:"not null" json:"room_number"`
-	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
-	Created    time.Time `gorm:"type:datetime" json:"created"`
-	CreatedBy  string    `json:"created_by"`
-	Modified   time.Time `gorm:"type:datetime" json:"modified"`
-	ModifiedBy string    `json:"modified_by"`
-}
-
-// DBKostRoomPict will migrate a kost room pict table with the given specification into the database
-type DBKostRoomPict struct {
-	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
-	RoomID     uint      `gorm:"not null" json:"room_id"`
-	PictDesc   string    `gorm:"not null" json:"pict_desc"`
-	URL        string    `gorm:"not null" json:"url"`
-	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
-	Created    time.Time `gorm:"type:datetime" json:"created"`
-	CreatedBy  string    `json:"created_by"`
-	Modified   time.Time `gorm:"type:datetime" json:"modified"`
-	ModifiedBy string    `json:"modified_by"`
-}
-
 // DBKostFacilities will migrate a kost facilities table with the given specification into the database
 type DBKostFacilities struct {
 	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
@@ -163,6 +118,65 @@ type DBKostAround struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
+// DBKostRoom will migrate a kost room table with the given specification into the database
+type DBKostRoom struct {
+	ID            uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID        uint      `gorm:"not null" json:"kost_id"`
+	RoomDesc      string    `gorm:"not null" json:"room_desc"`
+	RoomPrice     float64   `gorm:"not null" json:"room_price"`
+	RoomPriceUOM  uint      `gorm:"not null" json:"room_price_uom"`
+	RoomLength    float64   `gorm:"not null" json:"room_length"`
+	RoomWidth     float64   `gorm:"not null" json:"room_width"`
+	RoomArea      float64   `gorm:"not null" json:"room_area"`
+	RoomAreaUOM   uint      `gorm:"not null" json:"room_area_uom"`
+	MaxPerson     uint      `gorm:"not null" json:"max_person"`
+	FloorLevel    uint      `gorm:"not null" json:"floor_level"`
+	AllowedGender string    `gorm:"not null" json:"allowed_gender"`
+	Comments      string    `gorm:"not null" json:"comments"`
+	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
+	Created       time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy     string    `json:"created_by"`
+	Modified      time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy    string    `json:"modified_by"`
+}
+
+// DBKostRoomDetail will migrate a kost room table with the given specification into the database
+type DBKostRoomDetail struct {
+	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	RoomID     uint      `gorm:"not null" json:"room_id"`
+	RoomNumber string    `gorm:"not null" json:"room_number"`
+	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
+	Created    time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
+}
+
+// DBKostRoomPict will migrate a kost room pict table with the given specification into the database
+type DBKostRoomPict struct {
+	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	RoomID     uint      `gorm:"not null" json:"room_id"`
+	PictDesc   string    `gorm:"not null" json:"pict_desc"`
+	URL        string    `gorm:"not null" json:"url"`
+	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
+	Created    time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
+}
+
+// DBKostRoomFacilities will migrate a room facilities table with the given specification into the database
+type DBKostRoomFacilities struct {
+	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	FacID      uint      `gorm:"not null" json:"fac_id"`
+	RoomID     uint      `gorm:"not null" json:"room_id"`
+	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
+	Created    time.Time `gorm:"type:datetime" json:"created"`
+	CreatedBy  string    `json:"created_by"`
+	Modified   time.Time `gorm:"type:datetime" json:"modified"`
+	ModifiedBy string    `json:"modified_by"`
+}
+
 // KostTable set the migrated struct table name
 func (dbKost *DBKost) KostTable() string {
 	return "dbKost"
@@ -176,21 +190,6 @@ func (dbKostPeriod *DBKostPeriod) KostPeriodTable() string {
 // KostPictTable set the migrated struct table name
 func (dbKostPict *DBKostPict) KostPictTable() string {
 	return "dbKostPict"
-}
-
-// KostRoomTable set the migrated struct table name
-func (dbKostRoom *DBKostRoom) KostRoomTable() string {
-	return "dbKostRoom"
-}
-
-// KostRoomDetailTable set the migrated struct table name
-func (dbKostRoomDetail *DBKostRoomDetail) KostRoomDetailTable() string {
-	return "dbKostRoomDetail"
-}
-
-// KostRoomPictTable set the migrated struct table name
-func (dbKostRoomPict *DBKostRoomPict) KostRoomPictTable() string {
-	return "dbKostRoomPict"
 }
 
 // KostFacilitiesTable set the migrated struct table name
@@ -216,4 +215,24 @@ func (dbKostAccess *DBKostAccess) KostAccessTable() string {
 // KostAroundTable set the migrated struct table name
 func (dbKostAround *DBKostAround) KostAroundTable() string {
 	return "dbKostAround"
+}
+
+// KostRoomTable set the migrated struct table name
+func (dbKostRoom *DBKostRoom) KostRoomTable() string {
+	return "dbKostRoom"
+}
+
+// KostRoomDetailTable set the migrated struct table name
+func (dbKostRoomDetail *DBKostRoomDetail) KostRoomDetailTable() string {
+	return "dbKostRoomDetail"
+}
+
+// KostRoomPictTable set the migrated struct table name
+func (dbKostRoomPict *DBKostRoomPict) KostRoomPictTable() string {
+	return "dbKostRoomPict"
+}
+
+// KostRoomFacilitiesTable set the migrated struct table name
+func (dbKostRoomFacilities *DBKostRoomFacilities) KostRoomFacilitiesTable() string {
+	return "dbKostRoomFacilities"
 }

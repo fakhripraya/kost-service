@@ -443,7 +443,43 @@ func (kostHandler *KostHandler) GetKostRoomInfo(rw http.ResponseWriter, r *http.
 // GetKostList is a method to fetch the given kost info
 func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Request) {
 
-	rw.WriteHeader(http.StatusOK)
+	// get the page via mux
+	vars := mux.Vars(r)
+	page, err := strconv.Atoi(vars["page"])
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: "Unable to convert value"}, rw)
+
+		return
+	}
+
+	// look for the current kost list in the db
+	kostList, err := kostHandler.kost.GetKostList(page)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	var finalKostList []database.DBKost
+	for index, kost := range kostList {
+
+		if index >= ((page * 10) - 10) {
+			finalKostList = append(finalKostList, kost)
+		}
+
+	}
+
+	// parse the given instance to the response writer
+	err = data.ToJSON(finalKostList, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
 	return
 }
 

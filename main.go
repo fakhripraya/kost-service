@@ -118,7 +118,7 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomInfo)
 
 	// get kost handlers
-	getRequest.HandleFunc("/all", kostHandler.GetKostList)
+	getRequest.HandleFunc("/all/{page:[0-9]+}", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
 	getRequest.HandleFunc("/event/all", kostHandler.GetEventList)

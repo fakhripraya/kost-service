@@ -366,6 +366,20 @@ func (kost *Kost) GetKostListByOwner(ownerID uint) ([]database.DBKost, error) {
 	return kostList, nil
 }
 
+// GetKostList is a function to get kost list
+func (kost *Kost) GetKostList(page int) ([]database.DBKost, error) {
+
+	// look for the current kost list in the db
+	// 10 is the default limit
+	var kostList []database.DBKost
+	if err := config.DB.Limit((10 * page)).Find(&kostList).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostList, nil
+}
+
 // GetKostRoomDetails is a function to get kost room details based on the given room id
 func (kost *Kost) GetKostRoomDetails(roomID uint) ([]database.DBKostRoomDetail, error) {
 

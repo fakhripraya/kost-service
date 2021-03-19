@@ -417,7 +417,7 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 	type FinalKostList struct {
 		Kost       database.DBKost           `json:"kost"`
 		Facilities []entities.KostFacilities `json:"facilities"`
-		Price      *entities.KostRoomPrice   `json:"price"`
+		Price      string                    `json:"price"`
 	}
 
 	var finalKostList []FinalKostList
@@ -445,7 +445,7 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 			finalKostList = append(finalKostList, FinalKostList{
 				Kost:       kost,
 				Facilities: kostFacilities,
-				Price:      lowestPrice,
+				Price:      fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
 			})
 		}
 

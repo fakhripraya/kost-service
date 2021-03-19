@@ -68,6 +68,47 @@ func (kost *Kost) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store 
 
 }
 
+// GetUOMDesc is a function to get the uom desc by the given uom id
+func (kost *Kost) GetUOMDesc(UomID uint) (string, error) {
+
+	var uomDescription string
+	if err := config.DB.Raw("SELECT uom_desc FROM master_uoms WHERE id = ?", UomID).Scan(&uomDescription).Error; err != nil {
+
+		return "", err
+	}
+
+	return uomDescription, nil
+}
+
+// GetLowestPrice is a function to get the lowest price by the given list of prices
+func (kost *Kost) GetLowestPrice(KostID uint) (*entities.KostRoomPrice, error) {
+
+	var lowestPrice = &entities.KostRoomPrice{}
+	var roomPrices []entities.KostRoomPrice
+	if err := config.DB.Raw("SELECT room_price, room_price_uom FROM db_kost_rooms WHERE kost_id = ?", KostID).Scan(&roomPrices).Error; err != nil {
+
+		return nil, err
+	}
+
+	for _, price := range roomPrices {
+
+		if lowestPrice.RoomPrice == 0 {
+			lowestPrice.RoomPrice = price.RoomPrice
+			lowestPrice.RoomPriceUom = price.RoomPriceUom
+			lowestPrice.RoomPriceUomDesc, _ = kost.GetUOMDesc(price.RoomPriceUom)
+		} else {
+			if lowestPrice.RoomPrice > price.RoomPrice {
+				lowestPrice.RoomPrice = price.RoomPrice
+				lowestPrice.RoomPriceUom = price.RoomPriceUom
+				lowestPrice.RoomPriceUomDesc, _ = kost.GetUOMDesc(price.RoomPriceUom)
+			}
+		}
+
+	}
+
+	return lowestPrice, nil
+}
+
 // GetReverseGeocoderResult will get the result of reverse geocoder calculation based on the given latitude and longitude
 func (kost *Kost) GetReverseGeocoderResult(latitude string, longitude string) (*entities.Geolocation, error) {
 
@@ -340,6 +381,63 @@ func (kost *Kost) AddFacilities(currentUser *database.MasterUser, kostID uint, t
 	return nil
 }
 
+// GetKostFacilities is a function to get kost facilities by the kost
+func (kost *Kost) GetKostFacilities(KostID uint, RoomID string) ([]entities.KostFacilities, []entities.KostRoomFacilities, error) {
+
+	var facTableName string
+	var facTableKey string
+
+	var id uint
+	var model *gorm.DB
+	var kostFacilities []entities.KostFacilities
+	var kostRoomFacilities []entities.KostRoomFacilities
+
+	// filter whether id empty or not
+	if RoomID != "" {
+
+		facTableKey = "room_id"
+		facTableName = "db_kost_room_facilities"
+		model = config.DB.Model(&database.DBKostRoomFacilities{})
+
+		roomID, err := strconv.ParseUint(RoomID, 10, 32)
+		if err != nil {
+
+			return nil, nil, err
+		}
+
+		id = uint(roomID)
+
+	} else {
+
+		id = KostID
+		facTableKey = "kost_id"
+		facTableName = "db_kost_facilities"
+		model = config.DB.Model(&database.DBKostFacilities{})
+
+	}
+
+	// if id is not empty
+	// query will execute a select sql statement towards db_kost_room_facilities
+	// if not it will go towards db_kost_facilities instead
+	finalQuery := model.
+		Select(facTableName+".id,"+facTableName+".fac_id,"+facTableName+"."+facTableKey+",master_facilities.fac_category as fac_category, master_facilities.fac_name as fac_desc").
+		Joins("inner join master_facilities on master_facilities.id = "+facTableName+".fac_id").
+		Where(facTableName+"."+facTableKey+" = ?", id)
+
+	if RoomID != "" {
+		finalQuery = finalQuery.Scan(&kostRoomFacilities)
+	} else {
+		finalQuery = finalQuery.Scan(&kostFacilities)
+	}
+
+	if err := finalQuery.Error; err != nil {
+
+		return nil, nil, err
+	}
+
+	return kostFacilities, kostRoomFacilities, nil
+}
+
 // GetKostByOwner is a function to get kost by owner id
 func (kost *Kost) GetKostByOwner(ownerID uint) (*database.DBKost, error) {
 
@@ -378,6 +476,18 @@ func (kost *Kost) GetKostList(page int) ([]database.DBKost, error) {
 	}
 
 	return kostList, nil
+}
+
+// GetKostRoom is a function to get kost room based on the given room id
+func (kost *Kost) GetKostRoom(roomID uint) (*database.DBKostRoom, error) {
+
+	kostRoom := &database.DBKostRoom{}
+	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoom).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostRoom, nil
 }
 
 // GetKostRoomDetails is a function to get kost room details based on the given room id

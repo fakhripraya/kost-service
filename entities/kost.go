@@ -161,6 +161,13 @@ type KostReview struct {
 	ModifiedBy     string    `json:"modified_by"`
 }
 
+// KostRoomPrice is an entity to communicate with the kost room price client side
+type KostRoomPrice struct {
+	RoomPrice        float64 `json:"room_price"`
+	RoomPriceUom     uint    `json:"room_price_uom"`
+	RoomPriceUomDesc string  `json:"room_price_uom_desc"`
+}
+
 // MasterKostType is an entity to communicate with the master kost type client side
 type MasterKostType struct {
 	ID         uint      `json:"id"`

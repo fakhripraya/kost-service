@@ -10,7 +10,6 @@ import (
 	"github.com/fakhripraya/kost-service/database"
 	"github.com/fakhripraya/kost-service/entities"
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 )
 
 // GetKost is a method to fetch the given kost info
@@ -70,62 +69,15 @@ func (kostHandler *KostHandler) GetKostPicts(rw http.ResponseWriter, r *http.Req
 // GetKostFacilities is a method to fetch the given kost facilities list
 func (kostHandler *KostHandler) GetKostFacilities(rw http.ResponseWriter, r *http.Request) {
 
-	var err error
-
 	// get the kost via context
 	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
 
 	// get the additional field
 	vars := mux.Vars(r)
-	var facTableName string
-	var facTableKey string
 
-	var id uint
-	var model *gorm.DB
-	var kostFacilities []entities.KostFacilities
-	var kostRoomFacilities []entities.KostRoomFacilities
-
-	// filter whether id empty or not
-	if vars["roomId"] != "" {
-
-		facTableKey = "room_id"
-		facTableName = "db_kost_room_facilities"
-		model = config.DB.Model(&database.DBKostRoomFacilities{})
-
-		roomID, err := strconv.ParseUint(vars["roomId"], 10, 32)
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: "Unable to convert id"}, rw)
-
-			return
-		}
-
-		id = uint(roomID)
-
-	} else {
-
-		id = kostReq.ID
-		facTableKey = "kost_id"
-		facTableName = "db_kost_facilities"
-		model = config.DB.Model(&database.DBKostFacilities{})
-
-	}
-
-	// if id is not empty
-	// query will execute a select sql statement towards db_kost_room_facilities
-	// if not it will go towards db_kost_facilities instead
-	finalQuery := model.
-		Select(facTableName+".id,"+facTableName+".fac_id,"+facTableName+"."+facTableKey+",master_facilities.fac_category as fac_category, master_facilities.fac_name as fac_desc").
-		Joins("inner join master_facilities on master_facilities.id = "+facTableName+".fac_id").
-		Where(facTableName+"."+facTableKey+" = ?", id)
-
-	if vars["roomId"] != "" {
-		finalQuery = finalQuery.Scan(&kostRoomFacilities)
-	} else {
-		finalQuery = finalQuery.Scan(&kostFacilities)
-	}
-
-	if err := finalQuery.Error; err != nil {
+	// get the facilities from the method
+	kostFacilities, kostRoomFacilities, err := kostHandler.kost.GetKostFacilities(kostReq.ID, vars["roomId"])
+	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -462,11 +414,39 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var finalKostList []database.DBKost
+	type FinalKostList struct {
+		Kost       database.DBKost           `json:"kost"`
+		Facilities []entities.KostFacilities `json:"facilities"`
+		Price      *entities.KostRoomPrice   `json:"price"`
+	}
+
+	var finalKostList []FinalKostList
 	for index, kost := range kostList {
 
 		if index >= ((page * 10) - 10) {
-			finalKostList = append(finalKostList, kost)
+
+			// get the facilities from the method
+			kostFacilities, _, err := kostHandler.kost.GetKostFacilities(kost.ID, "")
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+				return
+			}
+
+			lowestPrice, err := kostHandler.kost.GetLowestPrice(kost.ID)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+				return
+			}
+
+			finalKostList = append(finalKostList, FinalKostList{
+				Kost:       kost,
+				Facilities: kostFacilities,
+				Price:      lowestPrice,
+			})
 		}
 
 	}

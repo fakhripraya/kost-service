@@ -652,20 +652,8 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 			return
 		}
 
-		var roomPrice struct {
-			RoomPrice    float64 `json:"room_price"`
-			RoomPriceUom uint    `json:"room_price_uom"`
-		}
-
-		if err := config.DB.Raw("SELECT room_price, room_price_uom FROM db_kost_rooms WHERE kost_id = ?", nearby.KostID).Scan(&roomPrice).Error; err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-			return
-		}
-
-		var uomDescription string
-		if err := config.DB.Raw("SELECT uom_desc FROM master_uoms WHERE id = ?", roomPrice.RoomPriceUom).Scan(&uomDescription).Error; err != nil {
+		lowestPrice, err := kostHandler.kost.GetLowestPrice(nearby.KostID)
+		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -678,7 +666,7 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 				KostName:       selectedKost.KostName,
 				City:           selectedKost.City,
 				ThumbnailURL:   selectedKost.ThumbnailURL,
-				ThumbnailPrice: fmt.Sprintf("%f", roomPrice.RoomPrice) + " / " + uomDescription,
+				ThumbnailPrice: fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
 			})
 
 			i++
@@ -696,7 +684,7 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 				KostName:       selectedKost.KostName,
 				City:           selectedKost.City,
 				ThumbnailURL:   selectedKost.ThumbnailURL,
-				ThumbnailPrice: fmt.Sprintf("%f", roomPrice.RoomPrice) + " / " + uomDescription,
+				ThumbnailPrice: fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
 			})
 
 			i = 2

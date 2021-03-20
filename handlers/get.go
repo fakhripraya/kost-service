@@ -561,27 +561,6 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 	// get the current logged in user additional info via context
 	userReq := r.Context().Value(KeyUser{}).(*entities.User)
 
-	geoLocation, err := kostHandler.kost.GetReverseGeocoderResult(userReq.Latitude, userReq.Longitude)
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	// look for the current kost list in the db
-	var nearbyKostList []database.DBKost
-	if err := config.DB.Limit(20).Where("is_active = ? AND city >= ?", true, geoLocation.GeoData[0].County).Find(&nearbyKostList).Error; err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	type Ranges struct {
-		KostID   uint
-		Distance float64
-	}
 	type NearbyKostView struct {
 		ID             uint   `json:"id"`
 		KostName       string `json:"kost_name"`
@@ -589,55 +568,13 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 		ThumbnailURL   string `json:"thumbnail_url"`
 		ThumbnailPrice string `json:"thumbnail_price"`
 	}
+
 	type FinalNearbyKostView struct {
 		CarouselList []NearbyKostView `json:"carousel_list"`
 	}
 
-	var listRanges []Ranges
-	var tempRanges []Ranges
-
-	for _, nearby := range nearbyKostList {
-
-		lat1, _ := strconv.ParseFloat(userReq.Latitude, 64)
-		lng1, _ := strconv.ParseFloat(userReq.Longitude, 64)
-		lat2, _ := strconv.ParseFloat(nearby.Latitude, 64)
-		lng2, _ := strconv.ParseFloat(nearby.Longitude, 64)
-
-		distance := kostHandler.kost.CalculateDistanceBetween(lat1, lng1, lat2, lng2, "K")
-		tempRanges = append(tempRanges, Ranges{
-			KostID:   nearby.ID,
-			Distance: distance,
-		})
-
-	}
-
-	for i := 0; i < 5; i++ {
-
-		var smallest float64 = -1
-		for _, obj := range tempRanges {
-
-			if smallest == -1 {
-				smallest = obj.Distance
-			} else {
-				if smallest > obj.Distance {
-					smallest = obj.Distance
-				}
-			}
-		}
-
-		var keepRanges []Ranges
-
-		for _, num := range tempRanges {
-
-			if num.Distance == smallest {
-				listRanges = append(listRanges, num)
-			} else {
-				keepRanges = append(keepRanges, num)
-			}
-		}
-
-		tempRanges = keepRanges
-	}
+	// for this request, the page will always 2
+	listRanges, err := kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, 2)
 
 	// variable to hold temporary data of nearby kost list
 	var tempNearbyKostList []NearbyKostView

@@ -168,6 +168,11 @@ type KostRoomPrice struct {
 	RoomPriceUomDesc string  `json:"room_price_uom_desc"`
 }
 
+type KostRanges struct {
+	KostID   uint
+	Distance float64
+}
+
 // MasterKostType is an entity to communicate with the master kost type client side
 type MasterKostType struct {
 	ID         uint      `json:"id"`

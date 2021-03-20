@@ -478,6 +478,79 @@ func (kost *Kost) GetKostList(page int) ([]database.DBKost, error) {
 	return kostList, nil
 }
 
+// GetNearbyKostList is a function to get nearby kost list
+func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]entities.KostRanges, error) {
+
+	// Get the geolocation by reversing it
+	geoLocation, err := kost.GetReverseGeocoderResult(latitude, longitude)
+	if err != nil {
+
+		return nil, err
+	}
+
+	limit := 10 * page
+
+	// look for the current kost list in the db
+	var nearbyKostList []database.DBKost
+	if err := config.DB.Limit(limit).Where("is_active = ? AND city >= ?", true, geoLocation.GeoData[0].County).Find(&nearbyKostList).Error; err != nil {
+
+		return nil, err
+	}
+
+	var listRanges []entities.KostRanges
+	var tempRanges []entities.KostRanges
+
+	for _, nearby := range nearbyKostList {
+
+		lat1, _ := strconv.ParseFloat(latitude, 64)
+		lng1, _ := strconv.ParseFloat(longitude, 64)
+		lat2, _ := strconv.ParseFloat(nearby.Latitude, 64)
+		lng2, _ := strconv.ParseFloat(nearby.Longitude, 64)
+
+		distance := kost.CalculateDistanceBetween(lat1, lng1, lat2, lng2, "K")
+		tempRanges = append(tempRanges, entities.KostRanges{
+			KostID:   nearby.ID,
+			Distance: distance,
+		})
+
+	}
+
+	for i := 1; i < limit; i++ {
+
+		if len(tempRanges) > 0 {
+
+			var smallest float64 = -1
+			for _, obj := range tempRanges {
+
+				if smallest == -1 {
+					smallest = obj.Distance
+				} else {
+					if smallest > obj.Distance {
+						smallest = obj.Distance
+					}
+				}
+			}
+
+			var keepRanges []entities.KostRanges
+
+			for _, num := range tempRanges {
+
+				if num.Distance == smallest {
+					listRanges = append(listRanges, num)
+				} else {
+					keepRanges = append(keepRanges, num)
+				}
+			}
+
+			tempRanges = keepRanges
+
+		}
+
+	}
+
+	return listRanges, nil
+}
+
 // GetKostRoom is a function to get kost room based on the given room id
 func (kost *Kost) GetKostRoom(roomID uint) (*database.DBKostRoom, error) {
 

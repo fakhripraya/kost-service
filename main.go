@@ -118,14 +118,14 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomInfo)
 
 	// get kost handlers
-	getRequest.HandleFunc("/all/{page:[0-9]+}", kostHandler.GetKostList)
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
-	getRequest.HandleFunc("/event/all", kostHandler.GetEventList)
-	getRequest.HandleFunc("/my/near", Adapt(
+	getRequest.HandleFunc("/all/{page:[0-9]+}", kostHandler.GetKostList)
+	getRequest.HandleFunc("/all/near", Adapt(
 		http.HandlerFunc(kostHandler.GetNearYouList),
 		kostHandler.MiddlewareParseUserRequest,
 	).ServeHTTP)
+	getRequest.HandleFunc("/event/all", kostHandler.GetEventList)
 
 	// get global middleware
 	getRequest.Use(kostHandler.MiddlewareValidateAuth)

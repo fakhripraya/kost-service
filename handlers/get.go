@@ -574,24 +574,22 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 	}
 
 	// for this request, the page will always 2
-	listRanges, err := kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, 2)
+	listNearbyKosts, err := kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, 2)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
 
 	// variable to hold temporary data of nearby kost list
 	var tempNearbyKostList []NearbyKostView
 	var finalNearbyKostList []FinalNearbyKostView
 	var i = 0
 
-	for _, nearby := range listRanges {
+	for _, nearby := range listNearbyKosts {
 
-		var selectedKost database.DBKost
-		if err := config.DB.Where("id= ?", nearby.KostID).First(&selectedKost).Error; err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-			return
-		}
-
-		lowestPrice, err := kostHandler.kost.GetLowestPrice(nearby.KostID)
+		lowestPrice, err := kostHandler.kost.GetLowestPrice(nearby.ID)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -601,10 +599,10 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 
 		if i < 3 {
 			tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
-				ID:             nearby.KostID,
-				KostName:       selectedKost.KostName,
-				City:           selectedKost.City,
-				ThumbnailURL:   selectedKost.ThumbnailURL,
+				ID:             nearby.ID,
+				KostName:       nearby.KostName,
+				City:           nearby.City,
+				ThumbnailURL:   nearby.ThumbnailURL,
 				ThumbnailPrice: fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
 			})
 
@@ -619,10 +617,10 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 			tempNearbyKostList = nil
 			tempNearbyKostList = append(tempNearbyKostList, tempData)
 			tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
-				ID:             nearby.KostID,
-				KostName:       selectedKost.KostName,
-				City:           selectedKost.City,
-				ThumbnailURL:   selectedKost.ThumbnailURL,
+				ID:             nearby.ID,
+				KostName:       nearby.KostName,
+				City:           nearby.City,
+				ThumbnailURL:   nearby.ThumbnailURL,
 				ThumbnailPrice: fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
 			})
 

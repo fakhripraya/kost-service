@@ -479,7 +479,7 @@ func (kost *Kost) GetKostList(page int) ([]database.DBKost, error) {
 }
 
 // GetNearbyKostList is a function to get nearby kost list
-func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]entities.KostRanges, error) {
+func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]entities.Kost, error) {
 
 	// Get the geolocation by reversing it
 	geoLocation, err := kost.GetReverseGeocoderResult(latitude, longitude)
@@ -492,13 +492,13 @@ func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]ent
 
 	// look for the current kost list in the db
 	var nearbyKostList []database.DBKost
-	if err := config.DB.Limit(limit).Where("is_active = ? AND city >= ?", true, geoLocation.GeoData[0].County).Find(&nearbyKostList).Error; err != nil {
+	if err := config.DB.Limit(limit).Where("is_active = ? AND city = ?", true, geoLocation.GeoData[0].County).Find(&nearbyKostList).Error; err != nil {
 
 		return nil, err
 	}
 
-	var listRanges []entities.KostRanges
-	var tempRanges []entities.KostRanges
+	var listKost []entities.Kost
+	var tempKost []entities.Kost
 
 	for _, nearby := range nearbyKostList {
 
@@ -508,19 +508,35 @@ func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]ent
 		lng2, _ := strconv.ParseFloat(nearby.Longitude, 64)
 
 		distance := kost.CalculateDistanceBetween(lat1, lng1, lat2, lng2, "K")
-		tempRanges = append(tempRanges, entities.KostRanges{
-			KostID:   nearby.ID,
-			Distance: distance,
+		tempKost = append(tempKost, entities.Kost{
+			ID:            nearby.ID,
+			OwnerID:       nearby.OwnerID,
+			TypeID:        nearby.TypeID,
+			Status:        nearby.Status,
+			KostCode:      nearby.KostCode,
+			KostName:      nearby.KostName,
+			KostDesc:      nearby.KostDesc,
+			Country:       nearby.Country,
+			City:          nearby.City,
+			Address:       nearby.Address,
+			Latitude:      nearby.Latitude,
+			Longitude:     nearby.Longitude,
+			UpRate:        nearby.UpRate,
+			UpRateExpired: nearby.UpRateExpired,
+			IsVerified:    nearby.IsVerified,
+			ThumbnailURL:  nearby.ThumbnailURL,
+			Distance:      distance,
+			IsActive:      nearby.IsActive,
 		})
 
 	}
 
 	for i := 1; i < limit; i++ {
 
-		if len(tempRanges) > 0 {
+		if len(tempKost) > 0 {
 
 			var smallest float64 = -1
-			for _, obj := range tempRanges {
+			for _, obj := range tempKost {
 
 				if smallest == -1 {
 					smallest = obj.Distance
@@ -531,24 +547,24 @@ func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]ent
 				}
 			}
 
-			var keepRanges []entities.KostRanges
+			var keepKost []entities.Kost
 
-			for _, num := range tempRanges {
+			for _, num := range tempKost {
 
 				if num.Distance == smallest {
-					listRanges = append(listRanges, num)
+					listKost = append(listKost, num)
 				} else {
-					keepRanges = append(keepRanges, num)
+					keepKost = append(keepKost, num)
 				}
 			}
 
-			tempRanges = keepRanges
+			tempKost = keepKost
 
 		}
 
 	}
 
-	return listRanges, nil
+	return listKost, nil
 }
 
 // GetKostRoom is a function to get kost room based on the given room id

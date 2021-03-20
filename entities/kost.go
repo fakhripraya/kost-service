@@ -31,6 +31,7 @@ type Kost struct {
 	KostAround    []database.DBKostAround     `json:"kost_around"`
 	IsVerified    bool                        `json:"is_verified"`
 	ThumbnailURL  string                      `json:"thumbnail_url"`
+	Distance      float64                     `json:"distance"`
 	IsActive      bool                        `json:"is_active"`
 	Created       time.Time                   `json:"created"`
 	CreatedBy     string                      `json:"created_by"`
@@ -166,11 +167,6 @@ type KostRoomPrice struct {
 	RoomPrice        float64 `json:"room_price"`
 	RoomPriceUom     uint    `json:"room_price_uom"`
 	RoomPriceUomDesc string  `json:"room_price_uom_desc"`
-}
-
-type KostRanges struct {
-	KostID   uint
-	Distance float64
 }
 
 // MasterKostType is an entity to communicate with the master kost type client side

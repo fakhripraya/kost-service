@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -562,15 +561,12 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 	userReq := r.Context().Value(KeyUser{}).(*entities.User)
 
 	type NearbyKostView struct {
-		ID             uint   `json:"id"`
-		KostName       string `json:"kost_name"`
-		City           string `json:"city"`
-		ThumbnailURL   string `json:"thumbnail_url"`
-		ThumbnailPrice string `json:"thumbnail_price"`
-	}
-
-	type FinalNearbyKostView struct {
-		CarouselList []NearbyKostView `json:"carousel_list"`
+		ID           uint    `json:"id"`
+		KostName     string  `json:"kost_name"`
+		City         string  `json:"city"`
+		ThumbnailURL string  `json:"thumbnail_url"`
+		Price        float64 `json:"price"`
+		Currency     string  `json:"currency"`
 	}
 
 	// for this request, the page will always 2
@@ -583,9 +579,7 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 	}
 
 	// variable to hold temporary data of nearby kost list
-	var tempNearbyKostList []NearbyKostView
-	var finalNearbyKostList []FinalNearbyKostView
-	var i = 0
+	var finalNearbyKostList []NearbyKostView
 
 	for _, nearby := range listNearbyKosts {
 
@@ -597,57 +591,15 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 			return
 		}
 
-		if i < 3 {
-			tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
-				ID:             nearby.ID,
-				KostName:       nearby.KostName,
-				City:           nearby.City,
-				ThumbnailURL:   nearby.ThumbnailURL,
-				ThumbnailPrice: fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
-			})
-
-			i++
-		} else {
-			finalNearbyKostList = append(finalNearbyKostList, FinalNearbyKostView{
-				CarouselList: tempNearbyKostList,
-			})
-
-			var tempData = tempNearbyKostList[2]
-
-			tempNearbyKostList = nil
-			tempNearbyKostList = append(tempNearbyKostList, tempData)
-			tempNearbyKostList = append(tempNearbyKostList, NearbyKostView{
-				ID:             nearby.ID,
-				KostName:       nearby.KostName,
-				City:           nearby.City,
-				ThumbnailURL:   nearby.ThumbnailURL,
-				ThumbnailPrice: fmt.Sprintf("%f", lowestPrice.RoomPrice) + " / " + lowestPrice.RoomPriceUomDesc,
-			})
-
-			i = 2
-		}
-
-	}
-
-	if len(tempNearbyKostList) > 0 {
-		finalNearbyKostList = append(finalNearbyKostList, FinalNearbyKostView{
-			CarouselList: tempNearbyKostList,
+		finalNearbyKostList = append(finalNearbyKostList, NearbyKostView{
+			ID:           nearby.ID,
+			KostName:     nearby.KostName,
+			City:         nearby.City,
+			ThumbnailURL: nearby.ThumbnailURL,
+			Price:        lowestPrice.RoomPrice,
+			Currency:     lowestPrice.RoomPriceUomDesc,
 		})
-	}
 
-	if len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList) == 3 {
-
-		var tempLastNearby []NearbyKostView
-		tempLastNearby = append(tempLastNearby, NearbyKostView{
-			ID:             finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].ID,
-			KostName:       finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].KostName,
-			City:           finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].City,
-			ThumbnailURL:   finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].ThumbnailURL,
-			ThumbnailPrice: finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList[len(finalNearbyKostList[len(finalNearbyKostList)-1].CarouselList)-1].ThumbnailPrice,
-		})
-		finalNearbyKostList = append(finalNearbyKostList, FinalNearbyKostView{
-			CarouselList: tempLastNearby,
-		})
 	}
 
 	// parse the given instance to the response writer

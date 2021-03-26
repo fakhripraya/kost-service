@@ -394,18 +394,12 @@ func (kostHandler *KostHandler) GetKostRoomInfo(rw http.ResponseWriter, r *http.
 // GetKostList is a method to fetch the given kost info
 func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Request) {
 
+	// get the current logged in user additional info via context
+	userReq := r.Context().Value(KeyUser{}).(*entities.User)
+
 	// get the page via mux
 	vars := mux.Vars(r)
 	page, err := strconv.Atoi(vars["page"])
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: "Unable to convert value"}, rw)
-
-		return
-	}
-
-	// look for the current kost list in the db
-	kostList, err := kostHandler.kost.GetKostList(page)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -413,8 +407,41 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	category, err := strconv.Atoi(vars["category"])
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// 0 = all kost // Initial val
+	// 1 = Near You
+	//TODO: 2 = Most Popular
+	//TODO: 3 = Most Facilited
+	//TODO: 4 = Most Expensive
+	//TODO: 5 = Most Cheap
+	var kostList []entities.Kost
+	if category == 0 {
+		kostList, err = kostHandler.kost.GetKostList(page)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+	} else if category == 1 {
+		kostList, err = kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, page)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+	}
+
 	type FinalKostList struct {
-		Kost       database.DBKost           `json:"kost"`
+		Kost       entities.Kost             `json:"kost"`
 		Facilities []entities.KostFacilities `json:"facilities"`
 		Price      float64                   `json:"price"`
 		Currency   string                    `json:"currency"`

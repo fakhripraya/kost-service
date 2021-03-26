@@ -120,7 +120,10 @@ func main() {
 	// get kost handlers
 	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
 	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
-	getRequest.HandleFunc("/all/{page:[0-9]+}", kostHandler.GetKostList)
+	getRequest.HandleFunc("/all/{category:[0-9]+}/{page:[0-9]+}", Adapt(
+		http.HandlerFunc(kostHandler.GetKostList),
+		kostHandler.MiddlewareParseUserRequest,
+	).ServeHTTP)
 	getRequest.HandleFunc("/all/near", Adapt(
 		http.HandlerFunc(kostHandler.GetNearYouList),
 		kostHandler.MiddlewareParseUserRequest,

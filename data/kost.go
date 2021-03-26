@@ -465,13 +465,36 @@ func (kost *Kost) GetKostListByOwner(ownerID uint) ([]database.DBKost, error) {
 }
 
 // GetKostList is a function to get kost list
-func (kost *Kost) GetKostList(page int) ([]database.DBKost, error) {
+func (kost *Kost) GetKostList(page int) ([]entities.Kost, error) {
 
 	// look for the current kost list in the db
 	// 10 is the default limit
-	var kostList []database.DBKost
-	if err := config.DB.Limit((10 * page)).Find(&kostList).Error; err != nil {
-
+	var kostList []entities.Kost
+	if err := config.DB.
+		Limit((10 * page)).
+		Model(&database.DBKost{}).
+		Select("db_kosts.id" +
+			",db_kosts.owner_id " +
+			",db_kosts.type_id" +
+			",db_kosts.status" +
+			",db_kosts.kost_code" +
+			",db_kosts.kost_name" +
+			",db_kosts.kost_desc" +
+			",db_kosts.country" +
+			",db_kosts.city" +
+			",db_kosts.address" +
+			",db_kosts.latitude" +
+			",db_kosts.longitude" +
+			",db_kosts.up_rate" +
+			",db_kosts.up_rate_expired" +
+			",db_kosts.thumbnail_url" +
+			",db_kosts.is_verified" +
+			",db_kosts.is_active" +
+			",db_kosts.created" +
+			",db_kosts.created_by" +
+			",db_kosts.modified" +
+			",db_kosts.modified_by").
+		Scan(&kostList).Error; err != nil {
 		return nil, err
 	}
 

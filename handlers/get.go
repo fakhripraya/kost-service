@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/fakhripraya/kost-service/config"
@@ -431,6 +432,19 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 			return
 		}
 	} else if category == 1 {
+		if userReq.Latitude == "" || userReq.Longitude == "" {
+			// if latitude or longitude is an empty string
+			// parse the given instance to the response writer
+			err = data.ToJSON(kostList, rw)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+				return
+			}
+			return
+		}
+
 		kostList, err = kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, page)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
@@ -439,6 +453,11 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 			return
 		}
 	}
+
+	// Sort by distance, keeping original order or equal elements.
+	sort.SliceStable(kostList, func(i, j int) bool {
+		return kostList[i].ID < kostList[j].ID
+	})
 
 	type FinalKostList struct {
 		Kost       entities.Kost             `json:"kost"`

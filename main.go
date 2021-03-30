@@ -111,6 +111,7 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/facilities/room/{roomId:[0-9]+}", kostHandler.GetKostFacilities)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/benchmark", kostHandler.GetKostBenchmark)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/access", kostHandler.GetKostAccessibility)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/period", kostHandler.GetKostPeriod)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/around", kostHandler.GetKostAround)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/review", kostHandler.GetKostReviewList)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/owner", kostHandler.GetKostOwner)

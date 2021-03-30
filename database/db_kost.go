@@ -130,7 +130,6 @@ type DBKostRoom struct {
 	RoomArea      float64   `gorm:"not null" json:"room_area"`
 	RoomAreaUOM   uint      `gorm:"not null" json:"room_area_uom"`
 	MaxPerson     uint      `gorm:"not null" json:"max_person"`
-	FloorLevel    uint      `gorm:"not null" json:"floor_level"`
 	AllowedGender string    `gorm:"not null" json:"allowed_gender"`
 	Comments      string    `gorm:"not null" json:"comments"`
 	IsActive      bool      `gorm:"not null;default:true" json:"is_active"`
@@ -145,6 +144,7 @@ type DBKostRoomDetail struct {
 	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	RoomID     uint      `gorm:"not null" json:"room_id"`
 	RoomNumber string    `gorm:"not null" json:"room_number"`
+	FloorLevel uint      `gorm:"not null" json:"floor_level"`
 	IsActive   bool      `gorm:"not null;default:true" json:"is_active"`
 	Created    time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy  string    `json:"created_by"`

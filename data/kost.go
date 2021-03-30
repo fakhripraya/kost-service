@@ -253,7 +253,6 @@ func (kost *Kost) AddRoom(currentUser *database.MasterUser, kostID uint, targetK
 
 		newKostRoom.RoomAreaUOM = targetKostRoom.RoomAreaUOM
 		newKostRoom.MaxPerson = targetKostRoom.MaxPerson
-		newKostRoom.FloorLevel = targetKostRoom.FloorLevel
 		newKostRoom.AllowedGender = targetKostRoom.AllowedGender
 		newKostRoom.IsActive = true
 		newKostRoom.Created = time.Now().Local()

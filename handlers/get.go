@@ -39,6 +39,36 @@ func (kostHandler *KostHandler) GetKost(rw http.ResponseWriter, r *http.Request)
 	return
 }
 
+// GetKostPeriod is a method to fetch the given kost period list
+func (kostHandler *KostHandler) GetKostPeriod(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostReq := r.Context().Value(KeyKost{}).(*entities.Kost)
+
+	var kostPeriod []entities.KostPeriod
+	if err := config.DB.
+		Model(&database.DBKostPeriod{}).
+		Select("db_kost_periods.id,db_kost_periods.kost_id,db_kost_periods.period_id,master_periods.period_desc, master_periods.is_active").
+		Joins("inner join master_periods on master_periods.id = db_kost_periods.period_id").
+		Where("db_kost_periods.kost_id = ?", kostReq.ID).Scan(&kostPeriod).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostPeriod, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
 // GetKostPicts is a method to fetch the given kost picts list
 func (kostHandler *KostHandler) GetKostPicts(rw http.ResponseWriter, r *http.Request) {
 
@@ -193,7 +223,7 @@ func (kostHandler *KostHandler) GetKostReviewList(rw http.ResponseWriter, r *htt
 		Model(&database.DBKostReview{}).
 		Select("db_kost_reviews.id, db_kost_reviews.cleanliness,db_kost_reviews.convenience,db_kost_reviews.security,db_kost_reviews.facilities,db_kost_reviews.comments,master_users.display_name, master_users.profile_picture").
 		Joins("inner join master_users on master_users.id = db_kost_reviews.user_id").
-		Where("db_kost_reviews.kost_id = ?", kostReq.ID, 0).Scan(&kostReview).Error; err != nil {
+		Where("db_kost_reviews.kost_id = ?", kostReq.ID).Scan(&kostReview).Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
@@ -299,7 +329,6 @@ func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.
 			",db_kost_rooms.room_area_uom"+
 			",area.uom_desc as room_area_uom_desc"+
 			",db_kost_rooms.max_person"+
-			",db_kost_rooms.floor_level"+
 			",db_kost_rooms.allowed_gender"+
 			",db_kost_rooms.comments"+
 			",db_kost_rooms.is_active").

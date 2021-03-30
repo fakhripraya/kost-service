@@ -44,6 +44,7 @@ type KostPeriod struct {
 	ID         uint      `json:"id"`
 	KostID     uint      `json:"kost_id"`
 	PeriodID   uint      `json:"period_id"`
+	PeriodDesc string    `json:"period_desc"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`
@@ -78,7 +79,6 @@ type KostRoom struct {
 	RoomAreaUOM      uint                        `json:"room_area_uom"`
 	RoomAreaUOMDesc  string                      `json:"room_area_uom_desc"`
 	MaxPerson        uint                        `json:"max_person"`
-	FloorLevel       uint                        `json:"floor_level"`
 	AllowedGender    string                      `json:"allowed_gender"`
 	Comments         string                      `json:"comments"`
 	RoomPicts        []database.DBKostRoomPict   `gorm:"-" json:"room_picts"`
@@ -95,6 +95,7 @@ type KostRoomDetail struct {
 	ID         uint      `json:"id"`
 	RoomID     uint      `json:"room_id"`
 	RoomNumber string    `json:"room_number"`
+	FloorLevel uint      `json:"floor_level"`
 	IsActive   bool      `json:"is_active"`
 	Created    time.Time `json:"created"`
 	CreatedBy  string    `json:"created_by"`

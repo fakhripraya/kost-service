@@ -119,8 +119,6 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomInfo)
 
 	// get kost handlers
-	getRequest.HandleFunc("/my", kostHandler.GetMyKost)
-	getRequest.HandleFunc("/my/all", kostHandler.GetMyKostList)
 	getRequest.HandleFunc("/all/{category:[0-9]+}/{page:[0-9]+}", Adapt(
 		http.HandlerFunc(kostHandler.GetKostList),
 		kostHandler.MiddlewareParseUserRequest,

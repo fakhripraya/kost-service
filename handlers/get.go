@@ -273,7 +273,7 @@ func (kostHandler *KostHandler) GetKostOwner(rw http.ResponseWriter, r *http.Req
 	}
 
 	// look for the selected owner kost list in the db
-	kostList, err := kostHandler.kost.GetKostListByOwner(kostOwner.ID)
+	kostList, err := kostHandler.kost.GetKostListByOwner(kostOwner.ID, -1)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -282,11 +282,11 @@ func (kostHandler *KostHandler) GetKostOwner(rw http.ResponseWriter, r *http.Req
 	}
 
 	finalKostAround := struct {
-		ID             uint              `json:"id"`
-		DisplayName    string            `json:"display_name"`
-		ProfilePicture string            `json:"profile_picture"`
-		City           string            `json:"city"`
-		KostList       []database.DBKost `json:"kost_list"`
+		ID             uint            `json:"id"`
+		DisplayName    string          `json:"display_name"`
+		ProfilePicture string          `json:"profile_picture"`
+		City           string          `json:"city"`
+		KostList       []entities.Kost `json:"kost_list"`
 	}{
 		ID:             kostOwner.ID,
 		DisplayName:    kostOwner.DisplayName,
@@ -451,6 +451,7 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 	//TODO: 3 = Most Facilited
 	//TODO: 4 = Most Expensive
 	//TODO: 5 = Most Cheap
+	// 6 = My kost list
 	var kostList []entities.Kost
 	if category == 0 {
 		kostList, err = kostHandler.kost.GetKostList(page)
@@ -475,6 +476,24 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 		}
 
 		kostList, err = kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, page)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+	} else if category == 6 {
+		// get the current user login
+		var currentUser *database.MasterUser
+		currentUser, err := kostHandler.kost.GetCurrentUser(rw, r, kostHandler.store)
+		if err != nil {
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
+		// look for the current kost list in the db
+		kostList, err = kostHandler.kost.GetKostListByOwner(currentUser.ID, page)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -529,72 +548,6 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 
 	// parse the given instance to the response writer
 	err = data.ToJSON(finalKostList, rw)
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	return
-}
-
-// GetMyKost is a method to fetch the given kost info
-func (kostHandler *KostHandler) GetMyKost(rw http.ResponseWriter, r *http.Request) {
-
-	// get the current user login
-	var currentUser *database.MasterUser
-	currentUser, err := kostHandler.kost.GetCurrentUser(rw, r, kostHandler.store)
-	if err != nil {
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	// look for the current kost in the db
-	myKost, err := kostHandler.kost.GetKostByOwner(currentUser.ID)
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	// parse the given instance to the response writer
-	err = data.ToJSON(myKost, rw)
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	return
-}
-
-// GetMyKostList is a method to fetch the list of the given kost info
-func (kostHandler *KostHandler) GetMyKostList(rw http.ResponseWriter, r *http.Request) {
-
-	// get the current user login
-	var currentUser *database.MasterUser
-	currentUser, err := kostHandler.kost.GetCurrentUser(rw, r, kostHandler.store)
-	if err != nil {
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	// look for the current kost list in the db
-	kostList, err := kostHandler.kost.GetKostListByOwner(currentUser.ID)
-	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	// parse the given instance to the response writer
-	err = data.ToJSON(kostList, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

@@ -451,12 +451,49 @@ func (kost *Kost) GetKostByOwner(ownerID uint) (*database.DBKost, error) {
 }
 
 // GetKostListByOwner is a function to get kost list by owner id
-func (kost *Kost) GetKostListByOwner(ownerID uint) ([]database.DBKost, error) {
+func (kost *Kost) GetKostListByOwner(ownerID uint, page int) ([]entities.Kost, error) {
 
 	// look for the current kost list in the db
-	var kostList []database.DBKost
-	if err := config.DB.Where("owner_id = ?", ownerID).Find(&kostList).Error; err != nil {
+	// declare a dynamic model
+	var model *gorm.DB
 
+	// if page equals -1, then there will be no limit
+	if page == -1 {
+		model = config.DB.
+			Model(&database.DBKost{})
+	} else {
+		// 10 is the default limit
+		model = config.DB.
+			Limit((10 * page)).
+			Model(&database.DBKost{})
+	}
+
+	// look for the current kost list in the db
+	var kostList []entities.Kost
+	if err := model.
+		Select("db_kosts.id"+
+			",db_kosts.owner_id "+
+			",db_kosts.type_id"+
+			",db_kosts.status"+
+			",db_kosts.kost_code"+
+			",db_kosts.kost_name"+
+			",db_kosts.kost_desc"+
+			",db_kosts.country"+
+			",db_kosts.city"+
+			",db_kosts.address"+
+			",db_kosts.latitude"+
+			",db_kosts.longitude"+
+			",db_kosts.up_rate"+
+			",db_kosts.up_rate_expired"+
+			",db_kosts.thumbnail_url"+
+			",db_kosts.is_verified"+
+			",db_kosts.is_active"+
+			",db_kosts.created"+
+			",db_kosts.created_by"+
+			",db_kosts.modified"+
+			",db_kosts.modified_by").
+		Where("owner_id = ?", ownerID).
+		Scan(&kostList).Error; err != nil {
 		return nil, err
 	}
 

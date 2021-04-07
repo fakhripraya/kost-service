@@ -142,6 +142,7 @@ type DBKostRoom struct {
 // DBKostRoomDetail will migrate a kost room table with the given specification into the database
 type DBKostRoomDetail struct {
 	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
+	KostID     uint      `gorm:"not null" json:"kost_id"`
 	RoomID     uint      `gorm:"not null" json:"room_id"`
 	RoomNumber string    `gorm:"not null" json:"room_number"`
 	FloorLevel uint      `gorm:"not null" json:"floor_level"`

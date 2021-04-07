@@ -356,7 +356,7 @@ func (kostHandler *KostHandler) GetKostRoomList(rw http.ResponseWriter, r *http.
 // GetKostRoomInfo is a method to fetch the given kost room detail list
 func (kostHandler *KostHandler) GetKostRoomInfo(rw http.ResponseWriter, r *http.Request) {
 
-	// get the kost via mux
+	// get the room id via mux
 	vars := mux.Vars(r)
 	roomID, err := strconv.ParseUint(vars["roomId"], 10, 32)
 	if err != nil {
@@ -411,6 +411,39 @@ func (kostHandler *KostHandler) GetKostRoomInfo(rw http.ResponseWriter, r *http.
 
 	// parse the given instance to the response writer
 	err = data.ToJSON(kostDetailView, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostRoomInfoByKost is a method to fetch the given kost room detail list with kost id as the parameter
+func (kostHandler *KostHandler) GetKostRoomInfoByKost(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via mux
+	vars := mux.Vars(r)
+	kostID, err := strconv.ParseUint(vars["kostId"], 10, 32)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: "Unable to convert id"}, rw)
+
+		return
+	}
+
+	kostRoomDetails, err := kostHandler.kost.GetKostRoomDetailsByKost(uint(kostID))
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err = data.ToJSON(kostRoomDetails, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

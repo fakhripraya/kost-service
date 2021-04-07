@@ -650,6 +650,18 @@ func (kost *Kost) GetKostRoomDetails(roomID uint) ([]database.DBKostRoomDetail, 
 	return kostRoomDetails, nil
 }
 
+// GetKostRoomDetailsByKost is a function to get kost room details based on the given kost id
+func (kost *Kost) GetKostRoomDetailsByKost(kostID uint) ([]database.DBKostRoomDetail, error) {
+
+	var kostRoomDetails []database.DBKostRoomDetail
+	if err := config.DB.Where("kost_id = ?", kostID).Find(&kostRoomDetails).Error; err != nil {
+
+		return nil, err
+	}
+
+	return kostRoomDetails, nil
+}
+
 // GetKostRoomPicts is a function to get kost room picts based on the given room id
 func (kost *Kost) GetKostRoomPicts(roomID uint) ([]database.DBKostRoomPict, error) {
 

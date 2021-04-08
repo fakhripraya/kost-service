@@ -93,7 +93,9 @@ type KostRoom struct {
 // KostRoomDetail is an entity to communicate with the kost room detail client side
 type KostRoomDetail struct {
 	ID         uint      `json:"id"`
+	KostID     uint      `json:"kost_id"`
 	RoomID     uint      `json:"room_id"`
+	RoomDesc   string    `json:"room_desc"`
 	RoomNumber string    `json:"room_number"`
 	FloorLevel uint      `json:"floor_level"`
 	IsActive   bool      `json:"is_active"`

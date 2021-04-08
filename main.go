@@ -117,7 +117,7 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/owner", kostHandler.GetKostOwner)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms", kostHandler.GetKostRoomList)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomInfo)
-	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{kostId:[0-9]+}/details", kostHandler.GetKostRoomInfoByKost)
+	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/all/details", kostHandler.GetKostRoomInfoAll)
 
 	// get kost handlers
 	getRequest.HandleFunc("/all/{category:[0-9]+}/{page:[0-9]+}", Adapt(

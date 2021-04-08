@@ -421,19 +421,18 @@ func (kostHandler *KostHandler) GetKostRoomInfo(rw http.ResponseWriter, r *http.
 	return
 }
 
-// GetKostRoomInfoByKost is a method to fetch the given kost room detail list with kost id as the parameter
-func (kostHandler *KostHandler) GetKostRoomInfoByKost(rw http.ResponseWriter, r *http.Request) {
+// GetKostRoomInfoAll is a method to fetch the given kost room detail list with kost id as the parameter
+func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *http.Request) {
 
 	// get the kost via mux
 	vars := mux.Vars(r)
-	kostID, err := strconv.ParseUint(vars["kostId"], 10, 32)
+	kostID, err := strconv.ParseUint(vars["id"], 10, 32)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: "Unable to convert id"}, rw)
 
 		return
 	}
-
 	kostRoomDetails, err := kostHandler.kost.GetKostRoomDetailsByKost(uint(kostID))
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
@@ -442,8 +441,30 @@ func (kostHandler *KostHandler) GetKostRoomInfoByKost(rw http.ResponseWriter, r 
 		return
 	}
 
+	var kostRoomDetailsFinal []entities.KostRoomDetail
+	for _, roomDetail := range kostRoomDetails {
+
+		KostRoom, err := kostHandler.kost.GetKostRoom(roomDetail.RoomID)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
+		kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
+			ID:         roomDetail.ID,
+			KostID:     roomDetail.KostID,
+			RoomID:     roomDetail.RoomID,
+			RoomDesc:   KostRoom.RoomDesc,
+			RoomNumber: roomDetail.RoomNumber,
+			FloorLevel: roomDetail.FloorLevel,
+			IsActive:   roomDetail.IsActive,
+		})
+	}
+
 	// parse the given instance to the response writer
-	err = data.ToJSON(kostRoomDetails, rw)
+	err = data.ToJSON(kostRoomDetailsFinal, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

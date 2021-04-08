@@ -630,7 +630,7 @@ func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]ent
 func (kost *Kost) GetKostRoom(roomID uint) (*database.DBKostRoom, error) {
 
 	kostRoom := &database.DBKostRoom{}
-	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoom).Error; err != nil {
+	if err := config.DB.Where("id = ?", roomID).Find(&kostRoom).Error; err != nil {
 
 		return nil, err
 	}
@@ -677,8 +677,18 @@ func (kost *Kost) GetKostRoomPicts(roomID uint) ([]database.DBKostRoomPict, erro
 // GetKostRoomBookedList is a function to get kost booked room list based on the given room id
 func (kost *Kost) GetKostRoomBookedList(roomID uint) ([]database.DBTransactionRoomBook, error) {
 
+	// TODO: pakein range date
+	longestPeriod := &database.MasterPeriod{}
+	if err := config.DB.Select("max(period_value) as period_value").First(&longestPeriod).Error; err != nil {
+
+		return nil, err
+	}
+
+	dateNow := time.Now()
+	dateBefore := dateNow.AddDate(0, 0, int(-longestPeriod.PeriodValue))
+
 	var kostRoomBookedList []database.DBTransactionRoomBook
-	if err := config.DB.Where("room_id = ?", roomID).Find(&kostRoomBookedList).Error; err != nil {
+	if err := config.DB.Where("room_id = ? and (book_date between ? and ?)", roomID, dateBefore, dateNow).Find(&kostRoomBookedList).Error; err != nil {
 
 		return nil, err
 	}

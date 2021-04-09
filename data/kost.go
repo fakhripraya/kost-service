@@ -688,12 +688,11 @@ func (kost *Kost) GetKostRoomBookedList(roomID uint) ([]database.DBTransactionRo
 	dateBefore := dateNow.AddDate(0, 0, int(-longestPeriod.PeriodValue))
 
 	var kostRoomBookedList []database.DBTransactionRoomBook
-	kost.logger.Info(strconv.Itoa(int(roomID)))
-	if err := config.DB.Where("status = 2 and room_id = ? and (book_date >= ? and book_date <= ?)", roomID, dateBefore, dateNow).Find(&kostRoomBookedList).Group("room_detail_id").Error; err != nil {
+	if err := config.DB.Where("status = 2 and room_id = ? and book_date >= ?", roomID, dateBefore).Find(&kostRoomBookedList).Group("room_detail_id").Error; err != nil {
 
 		return nil, err
 	}
-	fmt.Printf("%+v\n", kostRoomBookedList)
+
 	var finalRoomBookedList []database.DBTransactionRoomBook
 	for _, kostRoomBooked := range kostRoomBookedList {
 
@@ -730,7 +729,7 @@ func (kost *Kost) GetKostRoomBooked(roomDetailID uint) (*database.DBTransactionR
 	dateBefore := dateNow.AddDate(0, 0, int(-longestPeriod.PeriodValue))
 
 	var kostRoomBookedList []database.DBTransactionRoomBook
-	if err := config.DB.Where("status = 2 and room_detail_id = ? and (book_date >= ? and book_date <= ?)", roomDetailID, dateBefore, dateNow).Find(&kostRoomBookedList).Group("room_detail_id").Error; err != nil {
+	if err := config.DB.Where("status = 2 and room_detail_id = ? and book_date >= ?", roomDetailID, dateBefore).Find(&kostRoomBookedList).Group("room_detail_id").Error; err != nil {
 
 		return nil, err
 	}

@@ -444,7 +444,7 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 	var kostRoomDetailsFinal []entities.KostRoomDetail
 	for _, roomDetail := range kostRoomDetails {
 
-		KostRoom, err := kostHandler.kost.GetKostRoom(roomDetail.RoomID)
+		kostRoom, err := kostHandler.kost.GetKostRoom(roomDetail.RoomID)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -452,11 +452,19 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 			return
 		}
 
+		// kostRoomBook, err := kostHandler.kost.GetKostRoomBookedList(roomDetail.RoomID)
+		// if err != nil {
+		// 	rw.WriteHeader(http.StatusBadRequest)
+		// 	data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		// 	return
+		// }
+
 		kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
 			ID:         roomDetail.ID,
 			KostID:     roomDetail.KostID,
 			RoomID:     roomDetail.RoomID,
-			RoomDesc:   KostRoom.RoomDesc,
+			RoomDesc:   kostRoom.RoomDesc,
 			RoomNumber: roomDetail.RoomNumber,
 			FloorLevel: roomDetail.FloorLevel,
 			IsActive:   roomDetail.IsActive,

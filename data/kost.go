@@ -678,8 +678,8 @@ func (kost *Kost) GetKostRoomPicts(roomID uint) ([]database.DBKostRoomPict, erro
 func (kost *Kost) GetKostRoomBookedList(roomID uint) ([]database.DBTransactionRoomBook, error) {
 
 	// TODO: pakein range date
-	longestPeriod := &database.MasterPeriod{}
-	if err := config.DB.Select("max(period_value) as period_value").First(&longestPeriod).Error; err != nil {
+	longestPeriod, err := kost.GetMasterPeriodLongest()
+	if err != nil {
 
 		return nil, err
 	}
@@ -688,10 +688,84 @@ func (kost *Kost) GetKostRoomBookedList(roomID uint) ([]database.DBTransactionRo
 	dateBefore := dateNow.AddDate(0, 0, int(-longestPeriod.PeriodValue))
 
 	var kostRoomBookedList []database.DBTransactionRoomBook
-	if err := config.DB.Where("room_id = ? and (book_date between ? and ?)", roomID, dateBefore, dateNow).Find(&kostRoomBookedList).Error; err != nil {
+	if err := config.DB.Where("room_id = ? and (book_date between ? and ?)", roomID, dateBefore, dateNow).Find(&kostRoomBookedList).Group("room_detail_id").Error; err != nil {
 
 		return nil, err
 	}
 
-	return kostRoomBookedList, nil
+	var finalRoomBookedList []database.DBTransactionRoomBook
+	for _, kostRoomBooked := range kostRoomBookedList {
+
+		period := &database.MasterPeriod{}
+		if err := config.DB.Where("id = ?", kostRoomBooked.PeriodID).First(&period).Error; err != nil {
+
+			return nil, err
+		}
+
+		dateAfterBook := kostRoomBooked.BookDate.AddDate(0, 0, int(period.PeriodValue))
+
+		if dateAfterBook.After(kostRoomBooked.BookDate) && dateAfterBook.Before(dateNow) {
+			continue
+		} else {
+			finalRoomBookedList = append(finalRoomBookedList, kostRoomBooked)
+		}
+
+	}
+
+	return finalRoomBookedList, nil
+}
+
+// GetKostRoomBooked is a function to get kost booked room list based on the given room id
+func (kost *Kost) GetKostRoomBooked(roomDetailID uint) (*database.DBTransactionRoomBook, error) {
+
+	// TODO: pakein range date
+	longestPeriod, err := kost.GetMasterPeriodLongest()
+	if err != nil {
+
+		return nil, err
+	}
+
+	dateNow := time.Now()
+	dateBefore := dateNow.AddDate(0, 0, int(-longestPeriod.PeriodValue))
+
+	var kostRoomBookedList []database.DBTransactionRoomBook
+	if err := config.DB.Where("room_detail_id = ? and (book_date between ? and ?)", roomDetailID, dateBefore, dateNow).Find(&kostRoomBookedList).Group("room_detail_id").Error; err != nil {
+
+		return nil, err
+	}
+
+	var finalRoomBooked *database.DBTransactionRoomBook
+	for _, kostRoomBooked := range kostRoomBookedList {
+
+		period := &database.MasterPeriod{}
+		if err := config.DB.Where("id = ?", kostRoomBooked.PeriodID).First(&period).Error; err != nil {
+
+			return nil, err
+		}
+
+		dateAfterBook := kostRoomBooked.BookDate.AddDate(0, 0, int(period.PeriodValue))
+
+		if dateAfterBook.After(kostRoomBooked.BookDate) && dateAfterBook.Before(dateNow) {
+			continue
+		} else {
+			finalRoomBooked = &kostRoomBooked
+			break
+		}
+
+	}
+
+	return finalRoomBooked, nil
+}
+
+// GetMasterPeriodLongest is a function to get the longest master period
+func (kost *Kost) GetMasterPeriodLongest() (*database.MasterPeriod, error) {
+
+	// TODO: pakein range date
+	longestPeriod := &database.MasterPeriod{}
+	if err := config.DB.Select("max(period_value) as period_value").First(&longestPeriod).Error; err != nil {
+
+		return nil, err
+	}
+
+	return longestPeriod, nil
 }

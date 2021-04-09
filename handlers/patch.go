@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -38,6 +39,20 @@ func (kostHandler *KostHandler) AdminApprovalKost(rw http.ResponseWriter, r *htt
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return dbErr
+		}
+
+		// occurs when transaction already been approved by the tenant
+		if targetKost.Status != 0 {
+			rw.WriteHeader(http.StatusForbidden)
+
+			return fmt.Errorf("Status kost tidak valid untuk di approve")
+		}
+
+		// only tenant can approve the book transaction in this method
+		if currentUser.RoleID != 0 {
+			rw.WriteHeader(http.StatusForbidden)
+
+			return fmt.Errorf("Hanya admin yang bisa approve kost")
 		}
 
 		// Status 1 = approved by owner

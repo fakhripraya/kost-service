@@ -748,7 +748,14 @@ func (kost *Kost) GetKostRoomBooked(roomDetailID uint) (*database.DBTransactionR
 		if dateAfterBook.After(kostRoomBooked.BookDate) && dateAfterBook.Before(dateNow) {
 			continue
 		} else {
-			finalRoomBooked = &kostRoomBooked
+
+			tempRoomBooked := &database.DBTransactionRoomBook{}
+			if err := config.DB.Where("id = ?", kostRoomBooked.ID).First(&tempRoomBooked).Error; err != nil {
+
+				return nil, err
+			}
+
+			finalRoomBooked = tempRoomBooked
 			break
 		}
 
@@ -757,10 +764,21 @@ func (kost *Kost) GetKostRoomBooked(roomDetailID uint) (*database.DBTransactionR
 	return finalRoomBooked, nil
 }
 
+// GetMasterPeriod is a function to get the master period by id
+func (kost *Kost) GetMasterPeriod(periodID uint) (*database.MasterPeriod, error) {
+
+	period := &database.MasterPeriod{}
+	if err := config.DB.Where("id = ?", periodID).First(&period).Error; err != nil {
+
+		return nil, err
+	}
+
+	return period, nil
+}
+
 // GetMasterPeriodLongest is a function to get the longest master period
 func (kost *Kost) GetMasterPeriodLongest() (*database.MasterPeriod, error) {
 
-	// TODO: pakein range date
 	longestPeriod := &database.MasterPeriod{}
 	if err := config.DB.Select("max(period_value) as period_value").First(&longestPeriod).Error; err != nil {
 
@@ -768,4 +786,16 @@ func (kost *Kost) GetMasterPeriodLongest() (*database.MasterPeriod, error) {
 	}
 
 	return longestPeriod, nil
+}
+
+// GetMasterUser is a function to get the master user by id
+func (kost *Kost) GetMasterUser(userID uint) (*database.MasterUser, error) {
+
+	user := &database.MasterUser{}
+	if err := config.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+
+		return nil, err
+	}
+
+	return user, nil
 }

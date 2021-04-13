@@ -452,27 +452,74 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 			return
 		}
 
-		// kostRoomBook, err := kostHandler.kost.GetKostRoomBookedList(roomDetail.RoomID)
-		// if err != nil {
-		// 	rw.WriteHeader(http.StatusBadRequest)
-		// 	data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		kostRoomDetailBook, err := kostHandler.kost.GetKostRoomBooked(roomDetail.ID)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
-		// 	return
-		// }
+			return
+		}
 
-		kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
-			ID:         roomDetail.ID,
-			KostID:     roomDetail.KostID,
-			RoomID:     roomDetail.RoomID,
-			RoomDesc:   kostRoom.RoomDesc,
-			RoomNumber: roomDetail.RoomNumber,
-			FloorLevel: roomDetail.FloorLevel,
-			IsActive:   roomDetail.IsActive,
-		})
+		if kostRoomDetailBook != nil {
+			period, err := kostHandler.kost.GetMasterPeriod(kostRoomDetailBook.PeriodID)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+				return
+			}
+
+			booker, err := kostHandler.kost.GetMasterUser(kostRoomDetailBook.BookerID)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+				return
+			}
+
+			// TODO: status ntr diomongin lagi mau gimana
+			kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
+				ID:         roomDetail.ID,
+				KostID:     roomDetail.KostID,
+				RoomID:     roomDetail.RoomID,
+				RoomDesc:   kostRoom.RoomDesc,
+				RoomNumber: roomDetail.RoomNumber,
+				Status:     kostRoomDetailBook.Status,
+				Booker: &database.MasterUser{
+					ID:             booker.ID,
+					DisplayName:    booker.DisplayName,
+					ProfilePicture: booker.ProfilePicture,
+				},
+				PrevPayment: kostRoomDetailBook.BookDate,
+				NextPayment: kostRoomDetailBook.BookDate.AddDate(0, 0, int(period.PeriodValue)),
+				FloorLevel:  roomDetail.FloorLevel,
+				IsActive:    roomDetail.IsActive,
+			})
+		} else {
+
+			kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
+				ID:         roomDetail.ID,
+				KostID:     roomDetail.KostID,
+				RoomID:     roomDetail.RoomID,
+				RoomDesc:   kostRoom.RoomDesc,
+				RoomNumber: roomDetail.RoomNumber,
+				FloorLevel: roomDetail.FloorLevel,
+				IsActive:   roomDetail.IsActive,
+			})
+		}
+
+	}
+
+	finalData := struct {
+		KostRoomDetailSum int                       `json:"kost_room_detail_sum"`
+		KostRoomDetail    []entities.KostRoomDetail `json:"kost_room_detail"`
+	}{
+		KostRoomDetailSum: len(kostRoomDetailsFinal),
+		KostRoomDetail:    kostRoomDetailsFinal,
 	}
 
 	// parse the given instance to the response writer
-	err = data.ToJSON(kostRoomDetailsFinal, rw)
+	err = data.ToJSON(finalData, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)

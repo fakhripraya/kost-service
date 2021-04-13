@@ -98,11 +98,12 @@ type KostRoomDetail struct {
 	RoomDesc    string               `json:"room_desc"`
 	RoomNumber  string               `json:"room_number"`
 	FloorLevel  uint                 `json:"floor_level"`
-	RoomPrice   float64              `json:"room_price"`
+	Price       float64              `json:"price"`
+	Currency    string               `json:"currency"`
+	Status      uint                 `json:"status"`
 	Booker      *database.MasterUser `json:"booker"`
 	PrevPayment time.Time            `json:"prev_payment"`
 	NextPayment time.Time            `json:"next_payment"`
-	Status      uint                 `json:"status"`
 	IsActive    bool                 `json:"is_active"`
 	Created     time.Time            `json:"created"`
 	CreatedBy   string               `json:"created_by"`

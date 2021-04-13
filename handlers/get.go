@@ -452,6 +452,14 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 			return
 		}
 
+		currency, err := kostHandler.kost.GetUOMDesc(kostRoom.RoomPriceUOM)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
 		kostRoomDetailBook, err := kostHandler.kost.GetKostRoomBooked(roomDetail.ID)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
@@ -484,6 +492,9 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 				RoomID:     roomDetail.RoomID,
 				RoomDesc:   kostRoom.RoomDesc,
 				RoomNumber: roomDetail.RoomNumber,
+				FloorLevel: roomDetail.FloorLevel,
+				Price:      kostRoom.RoomPrice,
+				Currency:   currency,
 				Status:     kostRoomDetailBook.Status,
 				Booker: &database.MasterUser{
 					ID:             booker.ID,
@@ -492,11 +503,9 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 				},
 				PrevPayment: kostRoomDetailBook.BookDate,
 				NextPayment: kostRoomDetailBook.BookDate.AddDate(0, 0, int(period.PeriodValue)),
-				FloorLevel:  roomDetail.FloorLevel,
 				IsActive:    roomDetail.IsActive,
 			})
 		} else {
-
 			kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
 				ID:         roomDetail.ID,
 				KostID:     roomDetail.KostID,
@@ -504,6 +513,8 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 				RoomDesc:   kostRoom.RoomDesc,
 				RoomNumber: roomDetail.RoomNumber,
 				FloorLevel: roomDetail.FloorLevel,
+				Price:      kostRoom.RoomPrice,
+				Currency:   currency,
 				IsActive:   roomDetail.IsActive,
 			})
 		}

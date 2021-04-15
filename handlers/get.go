@@ -426,6 +426,7 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 
 	// get the kost via mux
 	vars := mux.Vars(r)
+	page, err := strconv.Atoi(vars["page"])
 	kostID, err := strconv.ParseUint(vars["id"], 10, 32)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
@@ -433,7 +434,7 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 
 		return
 	}
-	kostRoomDetails, err := kostHandler.kost.GetKostRoomDetailsByKost(uint(kostID))
+	kostRoomDetails, err := kostHandler.kost.GetKostRoomDetailsByKost(uint(kostID), page)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -441,35 +442,20 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 		return
 	}
 
+	var kostRoomDetailSum []database.DBKostRoomDetail
+	if err := config.DB.Where("kost_id = ?", kostID).Find(&kostRoomDetailSum).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
 	var kostRoomDetailsFinal []entities.KostRoomDetail
-	for _, roomDetail := range kostRoomDetails {
+	for index, roomDetail := range kostRoomDetails {
 
-		kostRoom, err := kostHandler.kost.GetKostRoom(roomDetail.RoomID)
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		if index >= ((page * 10) - 10) {
 
-			return
-		}
-
-		currency, err := kostHandler.kost.GetUOMDesc(kostRoom.RoomPriceUOM)
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-			return
-		}
-
-		kostRoomDetailBook, err := kostHandler.kost.GetKostRoomBooked(roomDetail.ID)
-		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
-			data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-			return
-		}
-
-		if kostRoomDetailBook != nil {
-			period, err := kostHandler.kost.GetMasterPeriod(kostRoomDetailBook.PeriodID)
+			kostRoom, err := kostHandler.kost.GetKostRoom(roomDetail.RoomID)
 			if err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 				data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -477,7 +463,7 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 				return
 			}
 
-			booker, err := kostHandler.kost.GetMasterUser(kostRoomDetailBook.BookerID)
+			currency, err := kostHandler.kost.GetUOMDesc(kostRoom.RoomPriceUOM)
 			if err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 				data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -485,38 +471,65 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 				return
 			}
 
-			// TODO: status ntr diomongin lagi mau gimana
-			kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
-				ID:         roomDetail.ID,
-				KostID:     roomDetail.KostID,
-				RoomID:     roomDetail.RoomID,
-				RoomDesc:   kostRoom.RoomDesc,
-				RoomNumber: roomDetail.RoomNumber,
-				FloorLevel: roomDetail.FloorLevel,
-				Price:      kostRoom.RoomPrice,
-				Currency:   currency,
-				Status:     kostRoomDetailBook.Status,
-				Booker: &database.MasterUser{
-					ID:             booker.ID,
-					DisplayName:    booker.DisplayName,
-					ProfilePicture: booker.ProfilePicture,
-				},
-				PrevPayment: kostRoomDetailBook.BookDate,
-				NextPayment: kostRoomDetailBook.BookDate.AddDate(0, 0, int(period.PeriodValue)),
-				IsActive:    roomDetail.IsActive,
-			})
-		} else {
-			kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
-				ID:         roomDetail.ID,
-				KostID:     roomDetail.KostID,
-				RoomID:     roomDetail.RoomID,
-				RoomDesc:   kostRoom.RoomDesc,
-				RoomNumber: roomDetail.RoomNumber,
-				FloorLevel: roomDetail.FloorLevel,
-				Price:      kostRoom.RoomPrice,
-				Currency:   currency,
-				IsActive:   roomDetail.IsActive,
-			})
+			kostRoomDetailBook, err := kostHandler.kost.GetKostRoomBooked(roomDetail.ID)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+				return
+			}
+
+			if kostRoomDetailBook != nil {
+				period, err := kostHandler.kost.GetMasterPeriod(kostRoomDetailBook.PeriodID)
+				if err != nil {
+					rw.WriteHeader(http.StatusBadRequest)
+					data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+					return
+				}
+
+				booker, err := kostHandler.kost.GetMasterUser(kostRoomDetailBook.BookerID)
+				if err != nil {
+					rw.WriteHeader(http.StatusBadRequest)
+					data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+					return
+				}
+
+				// TODO: status ntr diomongin lagi mau gimana
+				kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
+					ID:         roomDetail.ID,
+					KostID:     roomDetail.KostID,
+					RoomID:     roomDetail.RoomID,
+					RoomDesc:   kostRoom.RoomDesc,
+					RoomNumber: roomDetail.RoomNumber,
+					FloorLevel: roomDetail.FloorLevel,
+					Price:      kostRoom.RoomPrice,
+					Currency:   currency,
+					Status:     kostRoomDetailBook.Status,
+					Booker: &database.MasterUser{
+						ID:             booker.ID,
+						DisplayName:    booker.DisplayName,
+						ProfilePicture: booker.ProfilePicture,
+					},
+					PrevPayment: kostRoomDetailBook.BookDate,
+					NextPayment: kostRoomDetailBook.BookDate.AddDate(0, 0, int(period.PeriodValue)),
+					IsActive:    roomDetail.IsActive,
+				})
+			} else {
+				kostRoomDetailsFinal = append(kostRoomDetailsFinal, entities.KostRoomDetail{
+					ID:         roomDetail.ID,
+					KostID:     roomDetail.KostID,
+					RoomID:     roomDetail.RoomID,
+					RoomDesc:   kostRoom.RoomDesc,
+					RoomNumber: roomDetail.RoomNumber,
+					FloorLevel: roomDetail.FloorLevel,
+					Price:      kostRoom.RoomPrice,
+					Currency:   currency,
+					IsActive:   roomDetail.IsActive,
+				})
+			}
+
 		}
 
 	}
@@ -525,7 +538,7 @@ func (kostHandler *KostHandler) GetKostRoomInfoAll(rw http.ResponseWriter, r *ht
 		KostRoomDetailSum int                       `json:"kost_room_detail_sum"`
 		KostRoomDetail    []entities.KostRoomDetail `json:"kost_room_detail"`
 	}{
-		KostRoomDetailSum: len(kostRoomDetailsFinal),
+		KostRoomDetailSum: len(kostRoomDetailSum),
 		KostRoomDetail:    kostRoomDetailsFinal,
 	}
 

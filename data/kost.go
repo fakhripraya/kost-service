@@ -651,10 +651,10 @@ func (kost *Kost) GetKostRoomDetails(roomID uint) ([]database.DBKostRoomDetail, 
 }
 
 // GetKostRoomDetailsByKost is a function to get kost room details based on the given kost id
-func (kost *Kost) GetKostRoomDetailsByKost(kostID uint) ([]database.DBKostRoomDetail, error) {
+func (kost *Kost) GetKostRoomDetailsByKost(kostID uint, page int) ([]database.DBKostRoomDetail, error) {
 
 	var kostRoomDetails []database.DBKostRoomDetail
-	if err := config.DB.Where("kost_id = ?", kostID).Find(&kostRoomDetails).Error; err != nil {
+	if err := config.DB.Limit((10 * page)).Where("kost_id = ?", kostID).Find(&kostRoomDetails).Error; err != nil {
 
 		return nil, err
 	}

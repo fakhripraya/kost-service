@@ -124,6 +124,7 @@ func main() {
 		http.HandlerFunc(kostHandler.GetKostList),
 		kostHandler.MiddlewareParseUserRequest,
 	).ServeHTTP)
+	//TODO: ganti jadi all/h/{category:[0-9]+}
 	getRequest.HandleFunc("/all/near", Adapt(
 		http.HandlerFunc(kostHandler.GetNearYouList),
 		kostHandler.MiddlewareParseUserRequest,

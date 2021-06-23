@@ -273,7 +273,7 @@ func (kostHandler *KostHandler) GetKostOwner(rw http.ResponseWriter, r *http.Req
 	}
 
 	// look for the selected owner kost list in the db
-	kostList, err := kostHandler.kost.GetKostListByOwner(kostOwner.ID, -1)
+	kostList, _, err := kostHandler.kost.GetKostListByOwner(kostOwner.ID, -1)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -585,9 +585,10 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 	//TODO: 4 = Most Expensive
 	//TODO: 5 = Most Cheap
 	// 6 = My kost list
+	var count int64
 	var kostList []entities.Kost
 	if category == 0 {
-		kostList, err = kostHandler.kost.GetKostList(page)
+		kostList, count, err = kostHandler.kost.GetKostList(page)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -608,7 +609,7 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		kostList, err = kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, page)
+		kostList, count, err = kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, page)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -626,7 +627,7 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 		}
 
 		// look for the current kost list in the db
-		kostList, err = kostHandler.kost.GetKostListByOwner(currentUser.ID, page)
+		kostList, count, err = kostHandler.kost.GetKostListByOwner(currentUser.ID, page)
 		if err != nil {
 			rw.WriteHeader(http.StatusBadRequest)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -645,6 +646,11 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 		Facilities []entities.KostFacilities `json:"facilities"`
 		Price      float64                   `json:"price"`
 		Currency   string                    `json:"currency"`
+	}
+
+	type FinalResult struct {
+		KostList  []FinalKostList `json:"kost_list"`
+		KostCount int64           `json:"kost_count"`
 	}
 
 	var finalKostList []FinalKostList
@@ -680,7 +686,10 @@ func (kostHandler *KostHandler) GetKostList(rw http.ResponseWriter, r *http.Requ
 	}
 
 	// parse the given instance to the response writer
-	err = data.ToJSON(finalKostList, rw)
+	err = data.ToJSON(FinalResult{
+		KostList:  finalKostList,
+		KostCount: count,
+	}, rw)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -728,10 +737,11 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 		ThumbnailURL string  `json:"thumbnail_url"`
 		Price        float64 `json:"price"`
 		Currency     string  `json:"currency"`
+		OwnerID      uint    `json:"owner_id"`
 	}
 
 	// for this request, the page will always 2
-	listNearbyKosts, err := kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, 2)
+	listNearbyKosts, _, err := kostHandler.kost.GetNearbyKostList(userReq.Latitude, userReq.Longitude, 2)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -759,6 +769,7 @@ func (kostHandler *KostHandler) GetNearYouList(rw http.ResponseWriter, r *http.R
 			ThumbnailURL: nearby.ThumbnailURL,
 			Price:        lowestPrice.RoomPrice,
 			Currency:     lowestPrice.RoomPriceUomDesc,
+			OwnerID:      nearby.OwnerID,
 		})
 
 	}

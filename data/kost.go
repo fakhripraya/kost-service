@@ -451,7 +451,7 @@ func (kost *Kost) GetKostByOwner(ownerID uint) (*database.DBKost, error) {
 }
 
 // GetKostListByOwner is a function to get kost list by owner id
-func (kost *Kost) GetKostListByOwner(ownerID uint, page int) ([]entities.Kost, error) {
+func (kost *Kost) GetKostListByOwner(ownerID uint, page int) ([]entities.Kost, int64, error) {
 
 	// look for the current kost list in the db
 	// declare a dynamic model
@@ -469,6 +469,7 @@ func (kost *Kost) GetKostListByOwner(ownerID uint, page int) ([]entities.Kost, e
 	}
 
 	// look for the current kost list in the db
+	var count int64
 	var kostList []entities.Kost
 	if err := model.
 		Select("db_kosts.id"+
@@ -494,14 +495,42 @@ func (kost *Kost) GetKostListByOwner(ownerID uint, page int) ([]entities.Kost, e
 			",db_kosts.modified_by").
 		Where("owner_id = ?", ownerID).
 		Scan(&kostList).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return kostList, nil
+	if err := config.DB.
+		Model(&database.DBKost{}).
+		Select("db_kosts.id"+
+			",db_kosts.owner_id "+
+			",db_kosts.type_id"+
+			",db_kosts.status"+
+			",db_kosts.kost_code"+
+			",db_kosts.kost_name"+
+			",db_kosts.kost_desc"+
+			",db_kosts.country"+
+			",db_kosts.city"+
+			",db_kosts.address"+
+			",db_kosts.latitude"+
+			",db_kosts.longitude"+
+			",db_kosts.up_rate"+
+			",db_kosts.up_rate_expired"+
+			",db_kosts.thumbnail_url"+
+			",db_kosts.is_verified"+
+			",db_kosts.is_active"+
+			",db_kosts.created"+
+			",db_kosts.created_by"+
+			",db_kosts.modified"+
+			",db_kosts.modified_by").
+		Where("owner_id = ?", ownerID).
+		Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return kostList, count, nil
 }
 
 // GetKostList is a function to get kost list
-func (kost *Kost) GetKostList(page int) ([]entities.Kost, error) {
+func (kost *Kost) GetKostList(page int) ([]entities.Kost, int64, error) {
 
 	// look for the current kost list in the db
 	// 10 is the default limit
@@ -531,29 +560,63 @@ func (kost *Kost) GetKostList(page int) ([]entities.Kost, error) {
 			",db_kosts.modified" +
 			",db_kosts.modified_by").
 		Scan(&kostList).Error; err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return kostList, nil
+	var count int64
+	if err := config.DB.
+		Model(&database.DBKost{}).
+		Select("db_kosts.id" +
+			",db_kosts.owner_id " +
+			",db_kosts.type_id" +
+			",db_kosts.status" +
+			",db_kosts.kost_code" +
+			",db_kosts.kost_name" +
+			",db_kosts.kost_desc" +
+			",db_kosts.country" +
+			",db_kosts.city" +
+			",db_kosts.address" +
+			",db_kosts.latitude" +
+			",db_kosts.longitude" +
+			",db_kosts.up_rate" +
+			",db_kosts.up_rate_expired" +
+			",db_kosts.thumbnail_url" +
+			",db_kosts.is_verified" +
+			",db_kosts.is_active" +
+			",db_kosts.created" +
+			",db_kosts.created_by" +
+			",db_kosts.modified" +
+			",db_kosts.modified_by").
+		Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return kostList, count, nil
 }
 
 // GetNearbyKostList is a function to get nearby kost list
-func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]entities.Kost, error) {
+func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]entities.Kost, int64, error) {
 
 	// Get the geolocation by reversing it
 	geoLocation, err := kost.GetReverseGeocoderResult(latitude, longitude)
 	if err != nil {
 
-		return nil, err
+		return nil, 0, err
 	}
 
 	limit := 10 * page
 
 	// look for the current kost list in the db
+	var count int64
 	var nearbyKostList []database.DBKost
 	if err := config.DB.Limit(limit).Where("is_active = ? AND city = ?", true, geoLocation.GeoData[0].County).Find(&nearbyKostList).Error; err != nil {
 
-		return nil, err
+		return nil, 0, err
+	}
+
+	if err := config.DB.Model(&database.DBKost{}).Where("is_active = ? AND city = ?", true, geoLocation.GeoData[0].County).Count(&count).Error; err != nil {
+
+		return nil, 0, err
 	}
 
 	var listKost []entities.Kost
@@ -623,7 +686,7 @@ func (kost *Kost) GetNearbyKostList(latitude, longitude string, page int) ([]ent
 
 	}
 
-	return listKost, nil
+	return listKost, count, nil
 }
 
 // GetKostRoom is a function to get kost room based on the given room id

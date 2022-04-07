@@ -5,15 +5,24 @@ import "time"
 // DBKostAds will migrate a kost ads table with the given specification into the database
 type DBKostAds struct {
 	ID                     uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
-	OwnerID                uint      `gorm:"not null" json:"owner_id"`
-	AdsTypeID              uint      `gorm:"not null" json:"ads_type_id"`
-	KostTypeID             uint      `gorm:"not null" json:"kost_type_id"`
-	GenderTypeID           uint      `gorm:"not null" json:"gender_type_id"`
-	PetAllowedTypeID       uint      `gorm:"not null" json:"pet_allowed_type_id"`
 	Status                 uint      `gorm:"not null" json:"status"`
 	AdsCode                string    `gorm:"not null" json:"ads_code"`
+	AdsType                string    `gorm:"not null" json:"ads_type"`
+	AdsKostType            string    `gorm:"not null" json:"ads_kost_type"`
+	AdsOwner               string    `gorm:"not null" json:"ads_owner"`
+	AdsOwnerIG             string    `gorm:"not null" json:"ads_owner_ig"`
+	AdsPhoneNumber         string    `gorm:"not null" json:"ads_phone_number"`
+	AdsPICWhatsapp         string    `gorm:"not null" json:"ads_pic_whatsapp"`
+	AdsPropertyAddress     string    `gorm:"not null" json:"ads_property_address"`
+	AdsPropertyCity        string    `gorm:"not null" json:"ads_property_city"`
+	AdsPropertyPrice       string    `gorm:"not null" json:"ads_property_price"`
 	AdsDesc                string    `gorm:"not null" json:"ads_desc"`
+	AdsGender              string    `gorm:"not null" json:"ads_gender"`
+	AdsPetAllowed          string    `gorm:"not null" json:"ads_pet_allowed"`
 	AdsPostScheduleRequest string    `gorm:"not null" json:"ads_post_schedule_request"`
+	AdsHastag              string    `gorm:"not null" json:"ads_hashtag"`
+	AdsLinkSwipeUp         string    `json:"ads_link_swipe_up"`
+	AdsIgBioLink           string    `json:"ads_ig_bio_link"`
 	IsActive               bool      `gorm:"not null;default:true" json:"is_active"`
 	Created                time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy              string    `json:"created_by"`
@@ -24,7 +33,8 @@ type DBKostAds struct {
 // DBKostAdsFiles will migrate a kost ads files table with the given specification into the database
 type DBKostAdsFiles struct {
 	ID           uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
-	AdsID        uint      `gorm:"not null" json:"kost_id"`
+	AdsID        uint      `gorm:"not null" json:"ads_id"`
+	AdsFileType  string    `gorm:"not null" json:"ads_file_type"`
 	BASE64STRING string    `gorm:"not null" json:"base64_string"`
 	IsActive     bool      `gorm:"not null;default:true" json:"is_active"`
 	Created      time.Time `gorm:"type:datetime" json:"created"`

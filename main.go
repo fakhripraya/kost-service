@@ -137,14 +137,20 @@ func main() {
 
 	// post handlers
 	postRequest := serveMux.Methods(http.MethodPost).Subrouter()
+	postRequestWithoutAuth := serveMux.Methods(http.MethodPost).Subrouter()
 
 	// post add new kost
 	postRequest.HandleFunc("/add", kostHandler.AddKost)
+	postRequestWithoutAuth.HandleFunc("/add/ads", kostHandler.AddKostAds)
 
 	// post global middleware
 	postRequest.Use(
 		kostHandler.MiddlewareValidateAuth,
 		kostHandler.MiddlewareParseKostPostRequest,
+	)
+
+	postRequestWithoutAuth.Use(
+		kostHandler.MiddlewareParseKostAdsPostRequest,
 	)
 
 	// CORS

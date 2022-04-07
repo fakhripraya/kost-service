@@ -10,6 +10,9 @@ import (
 // KeyKost is a key used for the Kost object in the context
 type KeyKost struct{}
 
+// KeyKostAds is a key used for the Kost Ads object in the context
+type KeyKostAds struct{}
+
 // KeyApproval is a key used for the Approval object in the context
 type KeyApproval struct{}
 

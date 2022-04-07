@@ -212,3 +212,45 @@ type MasterUOM struct {
 	Modified   time.Time `json:"modified"`
 	ModifiedBy string    `json:"modified_by"`
 }
+
+// KostAds is an entity to communicate with the kost ads client side
+type KostAds struct {
+	ID                     uint                      `json:"id"`
+	Status                 uint                      `json:"status"`
+	AdsCode                string                    `json:"ads_code"`
+	AdsType                string                    `json:"ads_type"`
+	AdsKostType            string                    `json:"ads_kost_type"`
+	AdsOwner               string                    `json:"ads_owner"`
+	AdsOwnerIG             string                    `json:"ads_owner_ig"`
+	AdsPhoneNumber         string                    `json:"ads_phone_number"`
+	AdsPICWhatsapp         string                    `json:"ads_pic_whatsapp"`
+	AdsPropertyAddress     string                    `json:"ads_property_address"`
+	AdsPropertyCity        string                    `json:"ads_property_city"`
+	AdsPropertyPrice       string                    `json:"ads_property_price"`
+	AdsDesc                string                    `json:"ads_desc"`
+	AdsGender              string                    `json:"ads_gender"`
+	AdsPetAllowed          string                    `json:"ads_pet_allowed"`
+	AdsPostScheduleRequest string                    `json:"ads_post_schedule_request"`
+	AdsHastag              string                    `json:"ads_hashtag"`
+	AdsLinkSwipeUp         string                    `json:"ads_link_swipe_up"`
+	AdsIgBioLink           string                    `json:"ads_ig_bio_link"`
+	AdsFiles               []database.DBKostAdsFiles `json:"ads_files"`
+	IsActive               bool                      `json:"is_active"`
+	Created                time.Time                 `json:"created"`
+	CreatedBy              string                    `json:"created_by"`
+	Modified               time.Time                 `json:"modified"`
+	ModifiedBy             string                    `json:"modified_by"`
+}
+
+// KostAdsFiles is an entity to communicate with the kost ads file client side
+type KostAdsFiles struct {
+	ID           uint      `json:"id"`
+	AdsID        uint      `json:"ads_id"`
+	AdsFileType  string    `json:"ads_file_type"`
+	BASE64STRING string    `json:"base64_string"`
+	IsActive     bool      `json:"is_active"`
+	Created      time.Time `json:"created"`
+	CreatedBy    string    `json:"created_by"`
+	Modified     time.Time `json:"modified"`
+	ModifiedBy   string    `json:"modified_by"`
+}

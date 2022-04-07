@@ -155,6 +155,34 @@ func (kostHandler *KostHandler) MiddlewareParseKostPostRequest(next http.Handler
 	})
 }
 
+// MiddlewareParseKostAdsPostRequest parses the kost ads payload in the request body from json
+func (kostHandler *KostHandler) MiddlewareParseKostAdsPostRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+
+		// validate content type to be application/json
+		rw.Header().Add("Content-Type", "application/json")
+
+		// create the kostAds instance
+		kostAds := &entities.KostAds{}
+
+		// parse the request body to the given instance
+		err := data.FromJSON(kostAds, r.Body)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
+		// add the kost to the context
+		ctx := context.WithValue(r.Context(), KeyKostAds{}, kostAds)
+		r = r.WithContext(ctx)
+
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(rw, r)
+	})
+}
+
 // MiddlewareParseApprovalRequest parses the approval payload in the request body from json
 func (kostHandler *KostHandler) MiddlewareParseApprovalRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {

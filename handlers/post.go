@@ -256,3 +256,97 @@ func (kostHandler *KostHandler) AddKost(rw http.ResponseWriter, r *http.Request)
 	data.ToJSON(&GenericError{Message: "Sukses menambah kost baru"}, rw)
 	return
 }
+
+func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	kostAdsReq := r.Context().Value(KeyKostAds{}).(*entities.KostAds)
+
+	// proceed to create the new kost ads with transaction scope
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+
+		// set variables
+		var newKostAds database.DBKostAds
+		var dbErr error
+
+		newKostAds.Status = 0
+		newKostAds.AdsCode, dbErr = kostHandler.kost.GenerateCode("K", "I", "ADS")
+
+		if dbErr != nil {
+			return dbErr
+		}
+
+		newKostAds.AdsType = kostAdsReq.AdsType
+		newKostAds.AdsKostType = kostAdsReq.AdsKostType
+		newKostAds.AdsOwner = kostAdsReq.AdsOwner
+		newKostAds.AdsOwnerIG = kostAdsReq.AdsOwnerIG
+		newKostAds.AdsPhoneNumber = kostAdsReq.AdsPhoneNumber
+		newKostAds.AdsPICWhatsapp = kostAdsReq.AdsPICWhatsapp
+		newKostAds.AdsPropertyAddress = kostAdsReq.AdsPropertyAddress
+		newKostAds.AdsPropertyCity = kostAdsReq.AdsPropertyCity
+		newKostAds.AdsPropertyPrice = kostAdsReq.AdsPropertyPrice
+		newKostAds.AdsDesc = kostAdsReq.AdsDesc
+		newKostAds.AdsGender = kostAdsReq.AdsGender
+		newKostAds.AdsPetAllowed = kostAdsReq.AdsPetAllowed
+		newKostAds.AdsPostScheduleRequest = kostAdsReq.AdsPostScheduleRequest
+		newKostAds.AdsHastag = kostAdsReq.AdsHastag
+		newKostAds.AdsLinkSwipeUp = kostAdsReq.AdsLinkSwipeUp
+		newKostAds.AdsIgBioLink = kostAdsReq.AdsIgBioLink
+		newKostAds.IsActive = true
+		newKostAds.Created = time.Now().Local()
+		newKostAds.CreatedBy = "System"
+		newKostAds.Modified = time.Now().Local()
+		newKostAds.ModifiedBy = "System"
+
+		if dbErr = tx.Create(&newKostAds).Error; dbErr != nil {
+			return dbErr
+		}
+
+		// proceed to create the new kost ads files with transaction scope
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var dbErr2 error
+			var kostAdsFiles = kostAdsReq.AdsFiles
+
+			// add the kost id to the slices
+			for i := range kostAdsFiles {
+				(&kostAdsFiles[i]).AdsID = newKostAds.ID
+				(&kostAdsFiles[i]).IsActive = true
+				(&kostAdsFiles[i]).Created = time.Now().Local()
+				(&kostAdsFiles[i]).CreatedBy = "System"
+				(&kostAdsFiles[i]).Modified = time.Now().Local()
+				(&kostAdsFiles[i]).ModifiedBy = "System"
+			}
+
+			// insert the new kost periods to database
+			if dbErr2 = tx2.Create(&kostAdsFiles).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
+		// if transaction error, return the error
+		if dbErr != nil {
+			return dbErr
+		}
+
+		// return nil will commit the whole transaction
+		return nil
+
+	})
+
+	// if transaction error
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	data.ToJSON(&GenericError{Message: "Sukses submit form iklan"}, rw)
+	return
+}

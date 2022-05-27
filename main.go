@@ -21,6 +21,7 @@ import (
 	"github.com/srinathgs/mysqlstore"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 var err error
@@ -65,7 +66,9 @@ func main() {
 
 	// initialize db session based on dialector
 	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
-	config.DB, err = gorm.Open(mysql.Open(config.DbURL(config.BuildDBConfig(&appConfig.Database))), &gorm.Config{})
+	config.DB, err = gorm.Open(mysql.Open(config.DbURL(config.BuildDBConfig(&appConfig.Database))), &gorm.Config{
+		Logger: gormLogger.Default.LogMode(gormLogger.Silent),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}

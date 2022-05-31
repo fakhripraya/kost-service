@@ -234,6 +234,7 @@ type KostAds struct {
 	AdsHastag              string                    `json:"ads_hashtag"`
 	AdsLinkSwipeUp         string                    `json:"ads_link_swipe_up"`
 	AdsIgBioLink           string                    `json:"ads_ig_bio_link"`
+	AdsProofOfPayment      string                    `json:"ads_proof_of_payment"`
 	AdsFiles               []database.DBKostAdsFiles `json:"ads_files"`
 	IsActive               bool                      `json:"is_active"`
 	Created                time.Time                 `json:"created"`

@@ -292,6 +292,7 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 		newKostAds.AdsHastag = kostAdsReq.AdsHastag
 		newKostAds.AdsLinkSwipeUp = kostAdsReq.AdsLinkSwipeUp
 		newKostAds.AdsIgBioLink = kostAdsReq.AdsIgBioLink
+		newKostAds.AdsProofOfPayment = kostAdsReq.AdsProofOfPayment
 		newKostAds.IsActive = true
 		newKostAds.Created = time.Now().Local()
 		newKostAds.CreatedBy = "System"
@@ -347,6 +348,6 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 	}
 
 	rw.WriteHeader(http.StatusOK)
-	data.ToJSON(&GenericError{Message: "Sukses submit form iklan"}, rw)
+	data.ToJSON(&GenericError{Message: "Sukses submit form iklan, sekarang kamu hanya tinggal tunggu kami proses deh, kalau menurut kamu kelamaan dipostnya jangan lupa untuk tegur kita ya :)"}, rw)
 	return
 }

@@ -23,6 +23,7 @@ type DBKostAds struct {
 	AdsHastag              string    `gorm:"not null" json:"ads_hashtag"`
 	AdsLinkSwipeUp         string    `json:"ads_link_swipe_up"`
 	AdsIgBioLink           string    `json:"ads_ig_bio_link"`
+	AdsProofOfPayment      string    `gorm:"not null" json:"ads_proof_of_payment"`
 	IsActive               bool      `gorm:"not null;default:true" json:"is_active"`
 	Created                time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy              string    `json:"created_by"`

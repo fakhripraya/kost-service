@@ -292,7 +292,6 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 		newKostAds.AdsHastag = kostAdsReq.AdsHastag
 		newKostAds.AdsLinkSwipeUp = kostAdsReq.AdsLinkSwipeUp
 		newKostAds.AdsIgBioLink = kostAdsReq.AdsIgBioLink
-		newKostAds.AdsProofOfPayment = kostAdsReq.AdsProofOfPayment
 		newKostAds.IsActive = true
 		newKostAds.Created = time.Now().Local()
 		newKostAds.CreatedBy = "System"

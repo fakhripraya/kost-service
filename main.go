@@ -104,6 +104,7 @@ func main() {
 	logger.Info("Setting handlers for the API")
 
 	// get handlers
+	getRequestNoMiddleware := serveMux.Methods(http.MethodGet).Subrouter()
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
 	getKostRequest := serveMux.Methods(http.MethodGet).Subrouter()
 
@@ -121,6 +122,7 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms", kostHandler.GetKostRoomList)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomInfo)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/all/{page:[0-9]+}/details", kostHandler.GetKostRoomInfoAll)
+	getRequestNoMiddleware.HandleFunc("/ads/ig", kostHandler.GetKostInstagramAdsList)
 
 	// get kost handlers
 	getRequest.HandleFunc("/all/{category:[0-9]+}/{page:[0-9]+}", Adapt(

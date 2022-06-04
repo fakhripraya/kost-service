@@ -35,6 +35,7 @@ type DBKostAdsFiles struct {
 	ID           uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	AdsID        uint      `gorm:"not null" json:"ads_id"`
 	AdsFileType  string    `gorm:"not null" json:"ads_file_type"`
+	AdsDirPath   string    `gorm:"not null" json:"ads_dir_path"`
 	BASE64STRING string    `gorm:"not null" json:"base64_string"`
 	IsActive     bool      `gorm:"not null;default:true" json:"is_active"`
 	Created      time.Time `gorm:"type:datetime" json:"created"`

@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/fakhripraya/kost-service/config"
@@ -302,6 +305,14 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 			return dbErr
 		}
 
+		var baseFileDirPath = os.Getenv("APP_MK_DIR_ADS_FILE_PATH") + "/File-Directory-" + strconv.FormatUint(uint64(newKostAds.ID), 10)
+
+		// the WriteFile method returns an error if unsuccessful
+		dbErr = os.MkdirAll(baseFileDirPath, 0777)
+		if dbErr != nil {
+			return dbErr
+		}
+
 		// proceed to create the new kost ads files with transaction scope
 		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
 
@@ -311,12 +322,35 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 
 			// add the kost id to the slices
 			for i := range kostAdsFiles {
+
+				// specify the directory path of the desired file
+				var specificDirPath = baseFileDirPath + "/FOLDER_" + (&kostAdsFiles[i]).AdsFileType
+
 				(&kostAdsFiles[i]).AdsID = newKostAds.ID
+				(&kostAdsFiles[i]).AdsDirPath = specificDirPath
 				(&kostAdsFiles[i]).IsActive = true
 				(&kostAdsFiles[i]).Created = time.Now().Local()
 				(&kostAdsFiles[i]).CreatedBy = "System"
 				(&kostAdsFiles[i]).Modified = time.Now().Local()
 				(&kostAdsFiles[i]).ModifiedBy = "System"
+
+				_, err := os.Stat(specificDirPath)
+				if os.IsNotExist(err) {
+					// the WriteFile method returns an error if unsuccessful
+					dbErr = os.Mkdir(specificDirPath, 0777)
+					if dbErr != nil {
+						return dbErr
+					}
+				}
+
+				dbErr = ioutil.WriteFile(specificDirPath+"/"+strconv.Itoa(i)+".txt", []byte((&kostAdsFiles[i]).BASE64STRING), 0777)
+				// handle this error
+				if dbErr != nil {
+					// print it out
+					return dbErr
+				}
+
+				(&kostAdsFiles[i]).BASE64STRING = ""
 			}
 
 			// insert the new kost periods to database
@@ -324,7 +358,7 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 				return dbErr2
 			}
 
-			// return nil will commit the whole nested transaction
+			//return nil will commit the whole nested transaction
 			return nil
 		})
 

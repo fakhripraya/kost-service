@@ -122,7 +122,10 @@ func main() {
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms", kostHandler.GetKostRoomList)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/{roomId:[0-9]+}/details", kostHandler.GetKostRoomInfo)
 	getKostRequest.HandleFunc("/{id:[0-9]+}/rooms/all/{page:[0-9]+}/details", kostHandler.GetKostRoomInfoAll)
+
+	// get for instagram ads
 	getRequestNoMiddleware.HandleFunc("/ads/ig", kostHandler.GetKostInstagramAdsList)
+	getRequestNoMiddleware.HandleFunc("/ads/ig/{id:[0-9]+}/files", kostHandler.GetKostInstagramAdsFileList)
 
 	// get kost handlers
 	getRequest.HandleFunc("/all/{category:[0-9]+}/{page:[0-9]+}", Adapt(

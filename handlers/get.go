@@ -832,3 +832,47 @@ func (kostHandler *KostHandler) GetKostInstagramAdsList(rw http.ResponseWriter, 
 
 	return
 }
+
+// GetKostInstagramAdsFileList is a method to fetch the given kost Instagram ads file list
+func (kostHandler *KostHandler) GetKostInstagramAdsFileList(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	//kostReq := r.Context().Value(KeyKostAds{}).(*entities.KostAds)
+
+	// get the id via mux
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	var kostAdsFiles []entities.KostAdsFiles
+
+	if err = config.DB.
+		Model(&database.DBKostAdsFiles{}).
+		Select("db_kost_ads_files.id"+
+			",db_kost_ads_files.ads_id "+
+			",db_kost_ads_files.ads_file_type"+
+			",db_kost_ads_files.base64_string"+
+			",db_kost_ads_files.is_active").
+		Where("db_kost_ads_files.ads_id = ?", id).Scan(&kostAdsFiles).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err = data.ToJSON(kostAdsFiles, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}

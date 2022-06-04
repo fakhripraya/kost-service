@@ -289,7 +289,7 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 		newKostAds.AdsGender = kostAdsReq.AdsGender
 		newKostAds.AdsPetAllowed = kostAdsReq.AdsPetAllowed
 		newKostAds.AdsPostScheduleRequest = kostAdsReq.AdsPostScheduleRequest
-		newKostAds.AdsHastag = kostAdsReq.AdsHastag
+		newKostAds.AdsHashtag = kostAdsReq.AdsHashtag
 		newKostAds.AdsLinkSwipeUp = kostAdsReq.AdsLinkSwipeUp
 		newKostAds.AdsIgBioLink = kostAdsReq.AdsIgBioLink
 		newKostAds.IsActive = true

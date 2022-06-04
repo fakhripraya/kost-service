@@ -231,10 +231,10 @@ type KostAds struct {
 	AdsGender              string                    `json:"ads_gender"`
 	AdsPetAllowed          string                    `json:"ads_pet_allowed"`
 	AdsPostScheduleRequest string                    `json:"ads_post_schedule_request"`
-	AdsHastag              string                    `json:"ads_hashtag"`
+	AdsHashtag             string                    `json:"ads_hashtag"`
 	AdsLinkSwipeUp         string                    `json:"ads_link_swipe_up"`
 	AdsIgBioLink           string                    `json:"ads_ig_bio_link"`
-	AdsFiles               []database.DBKostAdsFiles `json:"ads_files"`
+	AdsFiles               []database.DBKostAdsFiles `gorm:"-" json:"ads_files"`
 	IsActive               bool                      `json:"is_active"`
 	Created                time.Time                 `json:"created"`
 	CreatedBy              string                    `json:"created_by"`

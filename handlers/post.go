@@ -327,7 +327,6 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 				var specificDirPath = baseFileDirPath + "/FOLDER_" + (&kostAdsFiles[i]).AdsFileType
 
 				(&kostAdsFiles[i]).AdsID = newKostAds.ID
-				(&kostAdsFiles[i]).AdsDirPath = specificDirPath
 				(&kostAdsFiles[i]).IsActive = true
 				(&kostAdsFiles[i]).Created = time.Now().Local()
 				(&kostAdsFiles[i]).CreatedBy = "System"
@@ -350,6 +349,7 @@ func (kostHandler *KostHandler) AddKostAds(rw http.ResponseWriter, r *http.Reque
 					return dbErr
 				}
 
+				(&kostAdsFiles[i]).AdsDirPath = specificDirPath + "/" + strconv.Itoa(i) + ".txt"
 				(&kostAdsFiles[i]).BASE64STRING = ""
 			}
 

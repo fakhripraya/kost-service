@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"io/ioutil"
 	"net/http"
 	"sort"
 	"strconv"
@@ -849,20 +850,34 @@ func (kostHandler *KostHandler) GetKostInstagramAdsFileList(rw http.ResponseWrit
 		return
 	}
 
-	var kostAdsFiles []entities.KostAdsFiles
+	var kostAdsFiles []database.DBKostAdsFiles
 
 	if err = config.DB.
 		Model(&database.DBKostAdsFiles{}).
 		Select("db_kost_ads_files.id"+
 			",db_kost_ads_files.ads_id "+
 			",db_kost_ads_files.ads_file_type"+
-			",db_kost_ads_files.base64_string"+
+			",db_kost_ads_files.ads_dir_path"+
 			",db_kost_ads_files.is_active").
 		Where("db_kost_ads_files.ads_id = ?", id).Scan(&kostAdsFiles).Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
+	}
+
+	// add the kost id to the slices
+	for i := range kostAdsFiles {
+
+		body, err := ioutil.ReadFile((&kostAdsFiles[i]).AdsDirPath)
+		if err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+			return
+		}
+
+		(&kostAdsFiles[i]).BASE64STRING = string(body)
 	}
 
 	// parse the given instance to the response writer

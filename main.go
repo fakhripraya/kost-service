@@ -44,6 +44,8 @@ func Adapt(handler http.Handler, adapters ...Adapter) http.Handler {
 
 func main() {
 
+	dev := "development"
+
 	// creates a structured logger for logging the entire program
 	logger := hclog.Default()
 
@@ -66,7 +68,7 @@ func main() {
 
 	// initialize db session based on dialector
 	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
-	config.DB, err = gorm.Open(mysql.Open(config.DbURL(config.BuildDBConfig(&appConfig.Database))), &gorm.Config{
+	config.DB, err = gorm.Open(mysql.Open(config.DbURL(config.BuildDBConfig(&appConfig.Database), &appConfig)), &gorm.Config{
 		Logger: gormLogger.Default.LogMode(gormLogger.Silent),
 	})
 	if err != nil {
@@ -83,8 +85,17 @@ func main() {
 
 	// Creates a session store based on MYSQL database
 	// If table doesn't exist, creates a new one
+
+	var MySQLStoreSecret string
+
+	if appConfig.API.Environment == dev {
+		MySQLStoreSecret = appConfig.MySQLStore.Secret
+	} else {
+		MySQLStoreSecret = os.Getenv("MYSQLSTORE_SECRET")
+	}
+
 	logger.Info("Building session store based on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
-	sessionStore, err = mysqlstore.NewMySQLStore(config.DbURL(config.BuildDBConfig(&appConfig.Database)), "dbMasterSession", "/", 3600*24*7, []byte(appConfig.MySQLStore.Secret))
+	sessionStore, err = mysqlstore.NewMySQLStore(config.DbURL(config.BuildDBConfig(&appConfig.Database), &appConfig), "dbMasterSession", "/", 3600*24*7, []byte(MySQLStoreSecret))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -166,17 +177,22 @@ func main() {
 
 	// creates a new server
 	server := http.Server{
-		Addr:         appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port), // configure the bind address
-		Handler:      corsHandler(serveMux),                                       // set the default handler
-		ErrorLog:     logger.StandardLogger(&hclog.StandardLoggerOptions{}),       // set the logger for the server
-		ReadTimeout:  5 * time.Second,                                             // max time to read request from the client
-		WriteTimeout: 10 * time.Second,                                            // max time to write response to the client
-		IdleTimeout:  120 * time.Second,                                           // max time for connections using TCP Keep-Alive
+		Handler:      corsHandler(serveMux),                                 // set the default handler
+		ErrorLog:     logger.StandardLogger(&hclog.StandardLoggerOptions{}), // set the logger for the server
+		ReadTimeout:  5 * time.Second,                                       // max time to read request from the client
+		WriteTimeout: 10 * time.Second,                                      // max time to write response to the client
+		IdleTimeout:  120 * time.Second,                                     // max time for connections using TCP Keep-Alive
+	}
+
+	if appConfig.API.Environment == dev {
+		server.Addr = appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port) // configure the bind address
 	}
 
 	// start the server
 	go func() {
-		logger.Info("Starting server on port " + appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port))
+		if appConfig.API.Environment == dev {
+			logger.Info("Starting server on port " + appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port))
+		}
 
 		err = server.ListenAndServe()
 		if err != nil {

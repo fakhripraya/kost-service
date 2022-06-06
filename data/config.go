@@ -39,7 +39,12 @@ func ConfigInit(config *entities.Configuration) error {
 		return err
 	}
 
-	MySigningKey = config.Jwt.Secret
+	// define whether its for production or development
+	if config.API.Environment == "development" {
+		MySigningKey = config.Jwt.Secret
+	} else {
+		MySigningKey = os.Getenv("JWT_SECRET")
+	}
 
 	return nil
 }

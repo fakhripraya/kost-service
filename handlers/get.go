@@ -815,7 +815,7 @@ func (kostHandler *KostHandler) GetKostInstagramAdsList(rw http.ResponseWriter, 
 			",db_kost_ads.ads_post_schedule_request"+
 			",db_kost_ads.ads_hashtag"+
 			",db_kost_ads.is_active").
-		Where("db_kost_ads.ads_type != ? OR db_kost_ads.ads_type != ?", "Iklan Tiktok Free", "Iklan Tiktok Premium (Rekomendasi)").Scan(&kostAds).Error; err != nil {
+		Where("db_kost_ads.ads_type != ? AND db_kost_ads.ads_type != ?", "Iklan Tiktok Free", "Iklan Tiktok Premium (Rekomendasi)").Scan(&kostAds).Error; err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 

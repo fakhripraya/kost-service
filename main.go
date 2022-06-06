@@ -50,7 +50,7 @@ func main() {
 	logger := hclog.Default()
 
 	// load configuration from env file
-	err = godotenv.Load(".env")
+	err = godotenv.Load()
 
 	if err != nil {
 		// log the fatal error if load env failed

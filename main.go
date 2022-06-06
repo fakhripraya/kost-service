@@ -186,6 +186,8 @@ func main() {
 
 	if appConfig.API.Environment == dev {
 		server.Addr = appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port) // configure the bind address
+	} else if appConfig.API.Environment == "production" {
+		server.Addr = ":" + os.Getenv("PORT")
 	}
 
 	// start the server

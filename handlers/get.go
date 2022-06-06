@@ -834,8 +834,55 @@ func (kostHandler *KostHandler) GetKostInstagramAdsList(rw http.ResponseWriter, 
 	return
 }
 
-// GetKostInstagramAdsFileList is a method to fetch the given kost Instagram ads file list
-func (kostHandler *KostHandler) GetKostInstagramAdsFileList(rw http.ResponseWriter, r *http.Request) {
+// GetKostTiktokAdsList is a method to fetch the given kost Tiktok ads list
+func (kostHandler *KostHandler) GetKostTiktokAdsList(rw http.ResponseWriter, r *http.Request) {
+
+	// get the kost via context
+	//kostReq := r.Context().Value(KeyKostAds{}).(*entities.KostAds)
+
+	var kostAds []entities.KostAds
+
+	if err := config.DB.
+		Model(&database.DBKostAds{}).
+		Select("db_kost_ads.id"+
+			",db_kost_ads.status "+
+			",db_kost_ads.ads_code"+
+			",db_kost_ads.ads_type"+
+			",db_kost_ads.ads_kost_type"+
+			",db_kost_ads.ads_owner"+
+			",db_kost_ads.ads_owner_ig"+
+			",db_kost_ads.ads_phone_number"+
+			",db_kost_ads.ads_pic_whatsapp"+
+			",db_kost_ads.ads_property_address"+
+			",db_kost_ads.ads_property_city"+
+			",db_kost_ads.ads_property_price"+
+			",db_kost_ads.ads_desc"+
+			",db_kost_ads.ads_gender"+
+			",db_kost_ads.ads_pet_allowed"+
+			",db_kost_ads.ads_post_schedule_request"+
+			",db_kost_ads.ads_hashtag"+
+			",db_kost_ads.is_active").
+		Where("db_kost_ads.ads_type = ? OR db_kost_ads.ads_type = ?", "Iklan Tiktok Free", "Iklan Tiktok Premium (Rekomendasi)").Scan(&kostAds).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	// parse the given instance to the response writer
+	err := data.ToJSON(kostAds, rw)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
+// GetKostAdsFileList is a method to fetch the given kost Instagram ads file list
+func (kostHandler *KostHandler) GetKostAdsFileList(rw http.ResponseWriter, r *http.Request) {
 
 	// get the kost via context
 	//kostReq := r.Context().Value(KeyKostAds{}).(*entities.KostAds)

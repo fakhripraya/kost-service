@@ -135,7 +135,8 @@ func main() {
 
 	// get for instagram ads
 	getRequestNoMiddleware.HandleFunc("/ads/ig", kostHandler.GetKostInstagramAdsList)
-	getRequestNoMiddleware.HandleFunc("/ads/ig/{id:[0-9]+}/files", kostHandler.GetKostInstagramAdsFileList)
+	getRequestNoMiddleware.HandleFunc("/ads/tiktok", kostHandler.GetKostTiktokAdsList)
+	getRequestNoMiddleware.HandleFunc("/ads/{id:[0-9]+}/files", kostHandler.GetKostAdsFileList)
 
 	// get kost handlers
 	getRequest.HandleFunc("/all/{category:[0-9]+}/{page:[0-9]+}", Adapt(

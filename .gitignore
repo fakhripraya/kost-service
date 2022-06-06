@@ -2,4 +2,3 @@
 config/config.development.yaml
 config/config.whatsapp.yaml
 Jktinfokost
-.env

@@ -17,6 +17,7 @@ import (
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
+	"github.com/joho/godotenv"
 	"github.com/srinathgs/mysqlstore"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -48,13 +49,13 @@ func main() {
 	// creates a structured logger for logging the entire program
 	logger := hclog.Default()
 
-	// load configuration from env file
-	// err = godotenv.Load()
+	//load configuration from env file
+	err = godotenv.Load()
 
-	// if err != nil {
-	// 	// log the fatal error if load env failed
-	// 	log.Fatal(err)
-	// }
+	if err != nil {
+		// log the fatal error if load env failed
+		log.Fatal(err)
+	}
 
 	// Initialize app configuration
 	var appConfig entities.Configuration
